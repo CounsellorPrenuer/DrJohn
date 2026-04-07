@@ -23,9 +23,25 @@ const RedDecorator = ({ children }: { children: React.ReactNode }) => (
   <span style={{ color: '#DC2626' }}>{children}</span>
 )
 
-const ptComponents = {
+const ptComponents: any = {
   marks: {
     red: RedDecorator,
+  },
+  list: {
+    bullet: ({ children }: { children: React.ReactNode }) => (
+      <ul className="mx-auto mt-4 list-disc space-y-3 pl-6 text-left max-w-3xl">
+        {children}
+      </ul>
+    ),
+    number: ({ children }: { children: React.ReactNode }) => (
+      <ol className="mx-auto mt-4 list-decimal space-y-3 pl-6 text-left max-w-3xl">
+        {children}
+      </ol>
+    ),
+  },
+  listItem: {
+    bullet: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
+    number: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
   },
 }
 
@@ -35,21 +51,13 @@ export default function Hero({ section }: HeroProps) {
   // Force black color as requested, ignoring Sanity field for now
   const headingColor = '#000000'
   const textColor = '#000000'
-  const buttonBgColor = section?.buttonColor || headingColor
-  const buttonTextColorVal = section?.buttonTextColor || '#ffffff'
-
-  // CTA button text with fallback
-  const ctaButtonText = section?.ctaText?.trim() || 'Discover Mentoria'
-  // Only show button if we have a link and text
-  const showButton = section?.ctaLink && ctaButtonText
-
   // Use fallback title to ensure consistent rendering
   const title = section?.title || 'Welcome'
 
   return (
     <section
       id="home"
-      className="relative w-full min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8"
+      className="relative w-full px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28"
       style={{ backgroundColor: bgColor }}
     >
       {section?.heroBackgroundImage?.asset && (
@@ -63,7 +71,7 @@ export default function Hero({ section }: HeroProps) {
           />
         </div>
       )}
-      <div className="relative z-10 max-w-4xl w-full text-center space-y-8">
+      <div className="relative z-10 mx-auto max-w-4xl w-full text-center space-y-8">
         <div
           className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight"
           style={{ color: headingColor }}
@@ -74,15 +82,6 @@ export default function Hero({ section }: HeroProps) {
             <h1>{title}</h1>
           )}
         </div>
-
-        {hasPortableTextContent(section?.richSubtitle) && (
-          <div
-            className="text-base sm:text-lg md:text-xl leading-relaxed"
-            style={{ color: textColor }}
-          >
-            <PortableText value={section!.richSubtitle} components={ptComponents} />
-          </div>
-        )}
 
         {section?.heroImage?.asset && (
           <div className="flex justify-center">
@@ -96,28 +95,17 @@ export default function Hero({ section }: HeroProps) {
           </div>
         )}
 
-        {showButton && (
-          <div className="pt-4">
-            <a
-              href={normalizeCtaLink(section!.ctaLink!)}
-              className="inline-block px-8 py-3 sm:px-10 sm:py-4 font-semibold rounded-lg hover:opacity-90 transition-opacity"
-              style={{
-                backgroundColor: buttonBgColor,
-                color: buttonTextColorVal
-              }}
-            >
-              {ctaButtonText}
-            </a>
+        {hasPortableTextContent(section?.richSubtitle) && (
+          <div
+            className="mx-auto max-w-6xl pt-6 text-base leading-relaxed sm:text-lg md:text-xl"
+            style={{ color: textColor }}
+          >
+            <PortableText value={section!.richSubtitle} components={ptComponents} />
           </div>
         )}
       </div>
     </section>
   )
-}
-
-function normalizeCtaLink(link: string) {
-  if (link.startsWith('/mentoria')) return '/#mentoria'
-  return link
 }
 
 function ensureContrast(color: string | undefined, background: string, fallback: string) {

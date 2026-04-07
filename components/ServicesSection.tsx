@@ -11,6 +11,17 @@ interface Service {
   icon?: any
 }
 
+interface PackagePlan {
+  _id: string
+  category?: string
+  planName?: string
+  price?: string
+  shortDescription?: string
+  benefits?: string[]
+  ctaText?: string
+  ctaLink?: string
+}
+
 interface ServicesSectionProps {
   section?: {
     title?: string
@@ -20,39 +31,157 @@ interface ServicesSectionProps {
     textColor?: string
   }
   services?: Service[]
+  packages?: PackagePlan[]
 }
 
-export default function ServicesSection({ section, services }: ServicesSectionProps) {
+export default function ServicesSection({ section, services, packages }: ServicesSectionProps) {
   if (!section) return null
 
   const bgColor = section.backgroundColor || '#ffffff'
   const headingColor = section.headingColor || '#1f2937'
   const textColor = section.textColor || '#4b5563'
+  const filteredServices = (services || []).filter((service) => {
+    const title = (service.title || '').toLowerCase()
+    const description = (service.description || '').toLowerCase()
+    return !title.includes('mobile +91') && !description.includes('mobile +91')
+  })
 
-  // Helper to normalize and check audience
+  if (packages && packages.length > 0) {
+    return (
+      <section
+        id="services"
+        className="w-full px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8"
+        style={{ backgroundColor: bgColor }}
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-12 text-left">
+            {section.title && (
+              <h2 className="mb-4 text-3xl font-bold sm:text-4xl md:text-5xl" style={{ color: headingColor }}>
+                {section.title}
+              </h2>
+            )}
+            {section.subtitle && (
+              <p className="text-lg leading-relaxed sm:text-xl" style={{ color: textColor }}>
+                {section.subtitle}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {packages.map((plan) => (
+              <article
+                key={plan._id}
+                className="flex h-full flex-col rounded-3xl border border-gray-200 bg-gray-100 p-8 shadow-sm"
+              >
+                <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-600">
+                  {plan.category || 'TRAINING PROGRAM'}
+                </p>
+
+                {plan.planName && <h3 className="mb-2 text-5xl font-bold text-slate-900">{plan.planName}</h3>}
+                {plan.price && <p className="mb-5 text-6xl font-extrabold leading-none text-slate-900">{plan.price}</p>}
+
+                {plan.shortDescription && (
+                  <p className="mb-5 text-lg leading-relaxed" style={{ color: textColor }}>
+                    {plan.shortDescription}
+                  </p>
+                )}
+
+                {plan.benefits && plan.benefits.length > 0 && (
+                  <ul className="mb-8 space-y-4">
+                    {plan.benefits.map((point, idx) => (
+                      <li key={`${plan._id}-benefit-${idx}`} className="flex items-start gap-3">
+                        <span
+                          className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+                          style={{ backgroundColor: '#d1fae5', color: '#047857' }}
+                        >
+                          &#10003;
+                        </span>
+                        <span className="text-xl leading-relaxed" style={{ color: textColor }}>
+                          {point}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <a
+                  href={plan.ctaLink || '#contact'}
+                  style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
+                  className="mt-auto inline-block w-full rounded-xl px-5 py-3 text-center text-xl font-bold uppercase tracking-wide transition-opacity hover:opacity-90"
+                >
+                  GET STARTED
+                </a>
+              </article>
+            ))}
+          </div>
+
+          {filteredServices.length > 0 && (
+            <div className="mt-14">
+              <h3 className="mb-6 text-3xl font-bold" style={{ color: headingColor }}>
+                Additional Services
+              </h3>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {filteredServices.map((service) => (
+                  <article key={service._id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                    {service.icon && (
+                      <div className="mb-3">
+                        <Image
+                          src={service.icon?.asset ? urlFor(service.icon).width(64).height(64).url() : ''}
+                          alt={service.icon?.alt || service.title}
+                          width={64}
+                          height={64}
+                          className="h-12 w-12 object-contain"
+                        />
+                      </div>
+                    )}
+                    <h4 className="mb-2 text-2xl font-bold" style={{ color: headingColor }}>
+                      {service.title}
+                    </h4>
+                    {service.targetAudience && (
+                      <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-red-600">
+                        {service.targetAudience}
+                      </p>
+                    )}
+                    <p className="text-lg leading-relaxed" style={{ color: textColor }}>
+                      {service.description}
+                    </p>
+                    <div className="mt-5">
+                      <a
+                        href="#contact"
+                        style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
+                        className="inline-block rounded-lg px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                      >
+                        GET STARTED
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    )
+  }
+
   const belongsTo = (service: Service, keyword: string) =>
     service.targetAudience?.toLowerCase().includes(keyword.toLowerCase())
 
-  const schoolServices = services?.filter(s => belongsTo(s, 'school')) || []
-  const collegeServices = services?.filter(s => belongsTo(s, 'college')) || []
-  const corporateServices = services?.filter(s => belongsTo(s, 'corporate')) || []
-
-  // Any services that didn't match the specific categories (optional - to avoid hiding data)
-  const otherServices = services?.filter(s =>
-    !belongsTo(s, 'school') &&
-    !belongsTo(s, 'college') &&
-    !belongsTo(s, 'corporate')
-  ) || []
+  const schoolServices = filteredServices.filter((s) => belongsTo(s, 'school'))
+  const collegeServices = filteredServices.filter((s) => belongsTo(s, 'college'))
+  const corporateServices = filteredServices.filter((s) => belongsTo(s, 'corporate'))
+  const otherServices =
+    filteredServices.filter((s) => !belongsTo(s, 'school') && !belongsTo(s, 'college') && !belongsTo(s, 'corporate'))
 
   const renderServiceGrid = (items: Service[]) => (
-    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-16 last:mb-0">
+    <div className="mb-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3 last:mb-0">
       {items.map((service) => (
         <div
           key={service._id}
-          className="p-6 rounded-lg border border-opacity-20 transition-all hover:bg-black/5"
+          className="rounded-lg border border-opacity-20 p-6 transition-all hover:bg-black/5"
           style={{
             borderColor: 'color-mix(in srgb, var(--text-color), transparent 85%)',
-            backgroundColor: 'color-mix(in srgb, var(--text-color), transparent 97%)'
+            backgroundColor: 'color-mix(in srgb, var(--text-color), transparent 97%)',
           }}
         >
           {service.icon && (
@@ -66,19 +195,19 @@ export default function ServicesSection({ section, services }: ServicesSectionPr
               />
             </div>
           )}
-          <h4
-            className="text-xl sm:text-2xl font-semibold mb-3 h-auto"
-            style={{ color: headingColor }}
-          >
+          <h4 className="mb-3 h-auto text-xl font-semibold sm:text-2xl" style={{ color: headingColor }}>
             {service.title}
           </h4>
-          <p
-            className="text-base sm:text-lg leading-relaxed mb-4"
-            style={{ color: textColor }}
-          >
+          <p className="mb-4 text-base leading-relaxed sm:text-lg" style={{ color: textColor }}>
             {service.description}
           </p>
-          {/* Tag is less relevant now that they are grouped, but keeping for clarity if needed */}
+          <a
+            href="#contact"
+            className="inline-block rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-85"
+            style={{ backgroundColor: headingColor, color: '#ffffff' }}
+          >
+            GET STARTED
+          </a>
         </div>
       ))}
     </div>
@@ -88,10 +217,7 @@ export default function ServicesSection({ section, services }: ServicesSectionPr
     if (items.length === 0) return null
     return (
       <div className="mb-12 last:mb-0">
-        <h3
-          className="text-2xl sm:text-3xl font-bold mb-8 text-center"
-          style={{ color: headingColor }}
-        >
+        <h3 className="mb-8 text-center text-2xl font-bold sm:text-3xl" style={{ color: headingColor }}>
           {title}
         </h3>
         {renderServiceGrid(items)}
@@ -102,42 +228,40 @@ export default function ServicesSection({ section, services }: ServicesSectionPr
   return (
     <section
       id="services"
-      className="w-full py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8"
+      className="w-full px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:px-8"
       style={{ backgroundColor: bgColor }}
     >
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
+      <div className="mx-auto max-w-7xl">
         <div className="mb-16 text-center">
           {section.title && (
-            <h2
-              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
-              style={{ color: headingColor }}
-            >
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl md:text-5xl" style={{ color: headingColor }}>
               {section.title}
             </h2>
           )}
 
           {section.subtitle && (
-            <p
-              className="text-lg sm:text-xl leading-relaxed"
-              style={{ color: textColor }}
-            >
+            <p className="text-lg leading-relaxed sm:text-xl" style={{ color: textColor }}>
               {section.subtitle}
             </p>
           )}
+
+          <div className="mt-6">
+            <a
+              href="#contact"
+              className="inline-block rounded-full px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-85"
+              style={{ backgroundColor: headingColor, color: '#ffffff' }}
+            >
+              GET STARTED
+            </a>
+          </div>
         </div>
 
-        {/* Grouped Services */}
         {renderSubsection('For Schools', schoolServices)}
         {renderSubsection('For Colleges', collegeServices)}
         {renderSubsection('For Corporates', corporateServices)}
-
-        {/* Fallback for uncategorized services */}
         {renderSubsection('Other Services', otherServices)}
 
-        {(!services || services.length === 0) && (
-          <p className="text-center text-gray-500">No services available.</p>
-        )}
+        {filteredServices.length === 0 && <p className="text-center text-gray-500">No services available.</p>}
       </div>
     </section>
   )

@@ -239,3 +239,8 @@ export const FOOTER_QUERY = `*[_type == "footer"][0]{
   linkColor,
   accentColor
 }`
+
+export const FULL_WEBSITE_DOCUMENT_QUERY = `*[_type == "fullWebsiteDocument"][0]{
+  title,
+  content
+}`

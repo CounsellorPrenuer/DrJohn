@@ -23,16 +23,18 @@ type PricingCardProps = {
 }
 
 export default function PricingCard({ plan, sectionHeadingColor, sectionTextColor }: PricingCardProps) {
-  const cardBg = plan.backgroundColor?.trim() || '#ffffff'
+  const cardBg = '#f3f4f6'
   const headingColor = plan.headingColor?.trim() || sectionHeadingColor || '#111827'
   const textColor = plan.textColor?.trim() || sectionTextColor || '#374151'
-  const showCta = Boolean(plan.ctaText && plan.ctaLink)
-  const ringClasses = plan.isHighlighted ? 'ring-4 ring-opacity-50' : ''
+  const showCta = true
+  const finalCtaLink = plan.ctaLink?.trim() || '#contact'
+  const buttonText = plan.ctaText?.trim() || 'Get Started'
+  const ringClasses = ''
 
   return (
     <article
       style={{ backgroundColor: cardBg }}
-      className={`relative rounded-2xl p-8 shadow-lg transition-transform hover:scale-105 ${ringClasses}`}
+      className={`relative flex h-full flex-col rounded-3xl border border-gray-200 p-8 shadow-sm ${ringClasses}`}
     >
       {plan.isHighlighted && (
         <div
@@ -65,39 +67,36 @@ export default function PricingCard({ plan, sectionHeadingColor, sectionTextColo
       )}
 
       {plan.category && (
-        <p style={{ color: textColor }} className="mb-2 text-sm font-medium uppercase tracking-wide opacity-80">
+        <p style={{ color: textColor }} className="mb-4 text-3 font-semibold uppercase tracking-wide opacity-90">
           {plan.category}
         </p>
       )}
 
-      <h3 style={{ color: headingColor }} className="mb-2 text-2xl font-bold">
+      <h3 style={{ color: headingColor }} className="mb-2 text-5xl font-bold">
         {plan.planName}
       </h3>
 
-      <p style={{ color: headingColor }} className="mb-4 text-4xl font-extrabold">
+      <p style={{ color: headingColor }} className="mb-5 text-6xl font-extrabold leading-none">
         {plan.price}
       </p>
 
       {plan.shortDescription && (
-        <p style={{ color: textColor }} className="mb-6 text-base leading-relaxed">
+        <p style={{ color: textColor }} className="mb-5 text-base leading-relaxed">
           {plan.shortDescription}
         </p>
       )}
 
       {plan.benefits && plan.benefits.length > 0 && (
-        <ul className="mb-8 space-y-3">
+        <ul className="mb-8 space-y-4">
           {plan.benefits.map((benefit: string, i: number) => (
             <li key={i} className="flex items-start gap-3">
-              <svg
-                className="mt-1 h-5 w-5 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                style={{ color: headingColor }}
+              <span
+                className="mt-1 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: '#d1fae5', color: '#047857' }}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span style={{ color: textColor }} className="text-base">
+                ✓
+              </span>
+              <span style={{ color: textColor }} className="text-lg leading-relaxed">
                 {benefit}
               </span>
             </li>
@@ -107,14 +106,14 @@ export default function PricingCard({ plan, sectionHeadingColor, sectionTextColo
 
       {showCta && (
         <a
-          href={plan.ctaLink}
+          href={finalCtaLink}
           style={{
-            backgroundColor: headingColor,
-            color: cardBg
+            backgroundColor: '#0f172a',
+            color: '#ffffff'
           }}
-          className="mt-4 block w-full rounded-lg py-3 text-center text-base font-semibold transition-opacity hover:opacity-90"
+          className="mt-auto block w-full rounded-xl py-3 text-center text-base font-bold uppercase tracking-wide transition-opacity hover:opacity-90"
         >
-          {plan.ctaText}
+          {buttonText}
         </a>
       )}
     </article>

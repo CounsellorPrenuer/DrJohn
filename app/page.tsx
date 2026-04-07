@@ -1,206 +1,66 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Hero from '@/components/Hero'
 import AboutSection from '@/components/About'
 import ServicesSection from '@/components/ServicesSection'
-import PricingCard from '@/components/PricingCard'
 import TestimonialCard from '@/components/TestimonialCard'
 import BlogSection from '@/components/BlogSection'
 import ContactSection from '@/components/ContactSection'
-import MentoriaProgram from '@/components/MentoriaProgram'
 import MethodologySection from '@/components/MethodologySection'
-import Footer from '@/components/Footer'
 import { fetchSanityData } from '@/lib/sanity'
 import {
   HERO_QUERY,
   ABOUT_QUERY,
   SERVICES_SECTION_QUERY,
   SERVICES_QUERY,
-  PRICING_SECTION_QUERY,
   PRICING_QUERY,
   TESTIMONIALS_SECTION_QUERY,
   TESTIMONIALS_QUERY,
   BLOG_SECTION_QUERY,
-  CONTACT_SECTION_QUERY,
-  MENTORIA_QUERY,
-  FOOTER_QUERY
+  CONTACT_SECTION_QUERY
 } from '@/lib/queries'
 import { METHODOLOGY_SECTION_QUERY } from '@/lib/methodologyQueries'
 
-export default function Home() {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function Home() {
+  const results = await Promise.allSettled([
+    fetchSanityData(HERO_QUERY),
+    fetchSanityData(METHODOLOGY_SECTION_QUERY),
+    fetchSanityData(SERVICES_SECTION_QUERY),
+    fetchSanityData(SERVICES_QUERY),
+    fetchSanityData(PRICING_QUERY),
+    fetchSanityData(ABOUT_QUERY),
+    fetchSanityData(TESTIMONIALS_SECTION_QUERY),
+    fetchSanityData(TESTIMONIALS_QUERY),
+    fetchSanityData(BLOG_SECTION_QUERY),
+    fetchSanityData(CONTACT_SECTION_QUERY)
+  ])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log('Home: Fetching live data')
-        const [
-          heroSection,
-          aboutSection,
-          servicesSection,
-          services,
-          pricingSection,
-          pricingPlans,
-          testimonialsSection,
-          testimonials,
-          blogSection,
-          contactSection,
-          methodologySection,
-          mentoriaData,
-          footerData
-        ] = await Promise.all([
-          fetchSanityData(HERO_QUERY),
-          fetchSanityData(ABOUT_QUERY),
-          fetchSanityData(SERVICES_SECTION_QUERY),
-          fetchSanityData(SERVICES_QUERY),
-          fetchSanityData(PRICING_SECTION_QUERY),
-          fetchSanityData(PRICING_QUERY),
-          fetchSanityData(TESTIMONIALS_SECTION_QUERY),
-          fetchSanityData(TESTIMONIALS_QUERY),
-          fetchSanityData(BLOG_SECTION_QUERY),
-          fetchSanityData(CONTACT_SECTION_QUERY),
-          fetchSanityData(METHODOLOGY_SECTION_QUERY),
-          fetchSanityData(MENTORIA_QUERY),
-          fetchSanityData(FOOTER_QUERY)
-        ])
-
-        setData({
-          heroSection,
-          aboutSection,
-          servicesSection,
-          services,
-          pricingSection,
-          pricingPlans,
-          testimonialsSection,
-          testimonials,
-          blogSection,
-          contactSection,
-          methodologySection,
-          mentoriaData,
-          footerData
-        })
-        setLoading(false)
-      } catch (err: any) {
-        console.error('Error fetching data:', err)
-        setError(err.message)
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-white">
-        <div className="h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <main className="flex min-h-screen w-full items-center justify-center">
-        <div className="text-center p-8">
-          <h1 className="mb-4 text-2xl font-bold">Error Loading Page</h1>
-          <p className="text-gray-600">Please check your connection and try again.</p>
-          <pre className="mt-4 overflow-auto rounded bg-gray-100 p-4 text-left text-sm">
-            {error}
-          </pre>
-        </div>
-      </main>
-    )
-  }
-
-  const {
+  const [
     heroSection,
-    aboutSection,
+    methodologySection,
     servicesSection,
     services,
-    pricingSection,
     pricingPlans,
+    aboutSection,
     testimonialsSection,
     testimonials,
     blogSection,
-    contactSection,
-    methodologySection,
-    mentoriaData,
-    footerData
-  } = data
+    contactSection
+  ] = results.map((result) => (result.status === 'fulfilled' ? result.value : null))
 
   return (
-    <main className="w-full">
-      {/* Hero Section */}
+    <>
+      {/* Home Content */}
       <Hero section={heroSection} />
 
-      {/* About Section */}
-      {aboutSection ? <AboutSection section={aboutSection} /> : null}
-
-      {/* Mentoria Section */}
-      {mentoriaData ? <MentoriaProgram mentoria={mentoriaData} /> : null}
-
-      {/* Methodology Section */}
+      {/* Mentoria Journey */}
       {methodologySection ? <MethodologySection section={methodologySection} /> : null}
 
       {/* Services Section */}
-      {servicesSection ? <ServicesSection section={servicesSection} services={services} /> : null}
+      {servicesSection ? <ServicesSection section={servicesSection} services={services} packages={pricingPlans} /> : null}
 
-      {/* Pricing Section */}
-      {pricingSection && (
-        <section
-          id="pricing"
-          style={{ backgroundColor: pricingSection.backgroundColor || '#f9fafb' }}
-          className="px-6 py-16"
-        >
-          <div className="mx-auto max-w-7xl">
-            {/* Section Header */}
-            <div className="mb-12 text-center">
-              {pricingSection.sectionTitle && (
-                <h2
-                  style={{ color: pricingSection.headingColor || '#111827' }}
-                  className="mb-4 text-4xl font-bold md:text-5xl"
-                >
-                  {pricingSection.sectionTitle}
-                </h2>
-              )}
-              {pricingSection.sectionSubtitle && (
-                <p
-                  style={{ color: pricingSection.textColor || '#374151' }}
-                  className="mx-auto max-w-2xl text-lg leading-relaxed"
-                >
-                  {pricingSection.sectionSubtitle}
-                </p>
-              )}
-            </div>
+      {/* Meet the Mentor */}
+      {aboutSection ? <AboutSection section={aboutSection} /> : null}
 
-            {/* Pricing Cards Grid */}
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {pricingPlans && pricingPlans.length > 0 ? (
-                pricingPlans.map((plan: any) => (
-                  <PricingCard
-                    key={plan._id}
-                    plan={plan}
-                    sectionHeadingColor={pricingSection.headingColor}
-                    sectionTextColor={pricingSection.textColor}
-                  />
-                ))
-              ) : (
-                <p
-                  style={{ color: pricingSection.textColor || '#374151' }}
-                  className="col-span-full text-center"
-                >
-                  No pricing plans available.
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Testimonials Section */}
+      {/* Testimonials */}
       <section
         id="testimonials"
         style={{ backgroundColor: testimonialsSection?.backgroundColor || '#ffffff' }}
@@ -209,7 +69,6 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           {testimonialsSection ? (
             <>
-              {/* Section Header */}
               <div className="mb-12 text-center">
                 {testimonialsSection.sectionTitle && (
                   <h2
@@ -229,7 +88,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Testimonials Grid */}
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {testimonials && testimonials.length > 0 ? (
                   testimonials.map((testimonial: any) => (
@@ -250,22 +108,15 @@ export default function Home() {
                 )}
               </div>
             </>
-          ) : (
-            <div className="p-8 text-center bg-gray-50 rounded-lg">
-              <p className="text-gray-600 font-semibold">Testimonials section data missing</p>
-            </div>
-          )}
+          ) : null}
         </div>
       </section>
 
-      {/* Blog Section */}
+      {/* Courses & Blog */}
       <BlogSection section={blogSection} />
 
       {/* Contact Section */}
       {contactSection && <ContactSection section={contactSection} />}
-
-      {/* Footer */}
-      {footerData && <Footer footer={footerData} services={services} />}
-    </main>
+    </>
   )
 }

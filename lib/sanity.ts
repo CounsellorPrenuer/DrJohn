@@ -20,5 +20,15 @@ export function urlFor(source: any) {
 }
 
 export async function fetchSanityData(query: string) {
-  return await client.fetch(query)
+  const timeoutMs = 10000
+  try {
+    return await Promise.race([
+      client.fetch(query),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Sanity API timeout')), timeoutMs)
+      ),
+    ])
+  } catch {
+    return null
+  }
 }

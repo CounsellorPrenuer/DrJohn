@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { urlFor } from '@/lib/sanity'
 
 type NavigationItem = {
   label?: string
@@ -23,50 +22,6 @@ type NavigationData = {
   activeLinkColor?: string
 }
 
-// Logo component with proper sizing, fallback, and image error handling
-function BrandLogo({
-  logoUrl,
-  logoAlt,
-  brandName
-}: {
-  logoUrl?: string
-  logoAlt: string
-  brandName?: string
-}) {
-  const [imageError, setImageError] = useState(false)
-
-  const hasLogo = logoUrl && !imageError
-  const hasBrandName = brandName
-
-  // If neither logo nor brand name, return null
-  if (!hasLogo && !hasBrandName) {
-    return null
-  }
-
-  return (
-    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-      {/* Logo Container - Square logo support with proper sizing */}
-      {hasLogo && (
-        <div className="logo-container flex items-center justify-center flex-shrink-0 h-10 sm:h-12 md:h-14 w-10 sm:w-12 md:w-14 p-1">
-          <img
-            src={logoUrl}
-            alt={logoAlt}
-            onError={() => setImageError(true)}
-            className="object-contain w-full h-full"
-          />
-        </div>
-      )}
-
-      {/* Brand Name */}
-      {hasBrandName && (
-        <span className="text-sm sm:text-base md:text-base font-bold whitespace-nowrap flex-shrink-0">
-          {brandName}
-        </span>
-      )}
-    </div>
-  )
-}
-
 export default function Navbar({ navigation: initialNavigation }: { navigation?: NavigationData | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [navigation, setNavigation] = useState<NavigationData | null | undefined>(initialNavigation)
@@ -74,20 +29,6 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
   useEffect(() => {
     setNavigation(initialNavigation)
   }, [initialNavigation])
-
-  useEffect(() => {
-    const fetchNav = async () => {
-      try {
-        const { fetchSanityData } = await import('@/lib/sanity')
-        const { NAVIGATION_QUERY } = await import('@/lib/queries')
-        const data = await fetchSanityData(NAVIGATION_QUERY)
-        if (data) setNavigation(data)
-      } catch (e) {
-        console.error('Failed to fetch live navigation:', e)
-      }
-    }
-    fetchNav()
-  }, [])
 
   const navLinks = (navigation?.menuItems || [])
     .filter((item) => item.isVisible !== false)
@@ -112,19 +53,9 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
     window.location.href = `/${href}`
   }
 
-  const handleCtaClick = (e: React.MouseEvent<HTMLAnchorElement>, link?: string) => {
-    if (!link) return
-    if (link.startsWith('http')) return
-
-    const targetHref = link.startsWith('#') ? link : `#${link}`
-    handleAnchorClick(e, targetHref)
-  }
-
-  const logoUrl = navigation?.logo?.asset ? urlFor(navigation.logo).width(200).height(200).url() : undefined
-  const logoAlt = navigation?.logo?.alt || navigation?.brandName || 'Brand logo'
-  const navBg = navigation?.backgroundColor || 'var(--primary-color)'
-  const navText = navigation?.textColor || 'var(--navbar-text-color)'
-  const navActive = navigation?.activeLinkColor || navText
+  const navBg = '#ffffff'
+  const navText = '#e60000'
+  const logoUrl = '/oversimplify-logo.png'
 
   return (
     <nav
@@ -134,44 +65,46 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Fixed height navbar container */}
         <div className="flex items-center justify-between h-16 sm:h-16 md:h-16">
-          {/* Logo/Brand Section - Clickable */}
+          {/* Reserved logo area */}
           <a
             href="#home"
             onClick={(e) => handleAnchorClick(e, '#home')}
-            className="flex items-center flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
-            style={{ color: 'inherit' }}
-            aria-label={`Go to home - ${navigation?.brandName || 'Brand'}`}
+            className="hidden md:flex items-center justify-start w-44 h-12 flex-shrink-0"
+            aria-label="Go to home"
           >
-            <BrandLogo
-              logoUrl={logoUrl}
-              logoAlt={logoAlt}
-              brandName={navigation?.brandName}
+            <img
+              src={logoUrl}
+              alt={navigation?.logo?.alt || navigation?.brandName || 'Logo'}
+              className="h-10 w-auto object-contain"
+            />
+          </a>
+
+          <a
+            href="#home"
+            onClick={(e) => handleAnchorClick(e, '#home')}
+            className="md:hidden flex items-center justify-start w-28 h-12 flex-shrink-0"
+            aria-label="Go to home"
+          >
+            <img
+              src={logoUrl}
+              alt={navigation?.logo?.alt || navigation?.brandName || 'Logo'}
+              className="h-9 w-auto object-contain"
             />
           </a>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8 flex-shrink-0 ml-auto">
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0 ml-4">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={(e) => handleAnchorClick(e, link.href)}
-                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer whitespace-nowrap"
+                className="text-4 font-semibold underline decoration-1 underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer whitespace-nowrap"
                 style={{ color: 'inherit' }}
               >
                 {link.label}
               </a>
             ))}
-            {navigation?.ctaButton?.text && navigation?.ctaButton?.link && (
-              <a
-                href={navigation.ctaButton.link}
-                onClick={(e) => handleCtaClick(e, navigation.ctaButton?.link)}
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
-                style={{ backgroundColor: navActive, color: navBg }}
-              >
-                {navigation.ctaButton.text}
-              </a>
-            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -212,22 +145,12 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
                 key={link.href}
                 href={link.href}
                 onClick={(e) => handleAnchorClick(e, link.href)}
-                className="block px-3 py-2 rounded-md text-base font-medium hover:opacity-80 transition-opacity cursor-pointer"
+                className="block px-3 py-2 text-base font-semibold underline decoration-1 underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer"
                 style={{ color: 'inherit' }}
               >
                 {link.label}
               </a>
             ))}
-            {navigation?.ctaButton?.text && navigation?.ctaButton?.link && (
-              <a
-                href={navigation.ctaButton.link}
-                onClick={(e) => handleCtaClick(e, navigation.ctaButton?.link)}
-                className="block rounded-md px-3 py-2 text-base font-semibold transition-opacity hover:opacity-80 mt-2"
-                style={{ backgroundColor: navActive, color: navBg }}
-              >
-                {navigation.ctaButton.text}
-              </a>
-            )}
           </div>
         </div>
       )}

@@ -69,17 +69,17 @@ export default function LifePlanningTable() {
   ]
 
   return (
-    <div className="w-full overflow-x-auto mt-12">
+    <div className="mt-8 w-full overflow-x-auto rounded-lg border border-gray-300 bg-white p-3">
       <div className="mb-6">
-        <h3 className="text-2xl font-bold mb-2 text-white">Life Planning Timeline (Sample)</h3>
-        <p className="text-sm opacity-80 text-white">A comprehensive year-by-year roadmap for life planning across multiple dimensions</p>
+        <h3 className="mb-2 text-2xl font-bold text-red-600">Life Planning Timeline Using a MENTOR (Sample)</h3>
+        <p className="text-sm text-gray-700">A comprehensive year-by-year roadmap for life planning across multiple dimensions</p>
       </div>
-      <table className="min-w-full border-collapse border border-gray-300 text-sm text-black">
+      <table className="min-w-full border-collapse border border-gray-400 text-sm text-black">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-3 py-2 font-semibold text-left sticky left-0 bg-gray-100 z-10">Year</th>
-            <th className="border border-gray-300 px-3 py-2 font-semibold text-left sticky left-[60px] bg-gray-100 z-10">Age</th>
-            <th className="border border-gray-300 px-3 py-2 font-semibold text-left min-w-[150px]">Location / Event</th>
+            <th className="border border-gray-400 px-3 py-2 font-semibold text-left">Year</th>
+            <th className="border border-gray-400 px-3 py-2 font-semibold text-left">(Age)</th>
+            <th className="border border-gray-400 px-3 py-2 font-semibold text-left min-w-[120px]">Location</th>
             <th className="border border-gray-300 px-3 py-2 font-semibold text-left min-w-[180px]">Education</th>
             <th className="border border-gray-300 px-3 py-2 font-semibold text-left min-w-[150px]">Professional</th>
             <th className="border border-gray-300 px-3 py-2 font-semibold text-left min-w-[180px]">Financial</th>
@@ -90,9 +90,9 @@ export default function LifePlanningTable() {
         <tbody>
           {tableData.map((row, index) => (
             <tr key={row.year} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-              <td className="border border-gray-300 px-3 py-2 font-medium sticky left-0 bg-inherit z-10">{row.year}</td>
-              <td className="border border-gray-300 px-3 py-2 sticky left-[60px] bg-inherit z-10">{row.age}</td>
-              <td className="border border-gray-300 px-3 py-2">{row.location}</td>
+              <td className="border border-gray-400 px-3 py-2 font-medium">{row.year}</td>
+              <td className="border border-gray-400 px-3 py-2">({row.age})</td>
+              <td className="border border-gray-400 px-3 py-2">{row.location}</td>
               <td className="border border-gray-300 px-3 py-2">{row.education}</td>
               <td className="border border-gray-300 px-3 py-2">{row.professional}</td>
               <td className="border border-gray-300 px-3 py-2">{row.financial}</td>

@@ -321,37 +321,6 @@ export default function ContactSection({ section }: ContactSectionProps) {
               <p style={{ color: cardText }}>{data.phone || '+1 (000) 000-0000'}</p>
             </div>
 
-            <div className="rounded-2xl p-6 shadow-lg" style={{ backgroundColor: cardBg }}>
-              <div className="mb-3 flex items-center gap-3">
-                <span
-                  className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0"
-                  style={{
-                    backgroundColor: 'var(--contact-icon-bg)',
-                    color: 'var(--contact-icon)',
-                    border: '1px solid var(--contact-icon-border)'
-                  }}
-                >
-                  {section?.locationIcon ? (
-                    <Image
-                      src={section.locationIcon?.asset ? urlFor(section.locationIcon).width(20).height(20).url() : ''}
-                      alt={section.locationIcon?.alt || 'Location icon'}
-                      width={20}
-                      height={20}
-                      className="h-5 w-5 object-contain"
-                    />
-                  ) : (
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M12 22s7-5.5 7-12a7 7 0 1 0-14 0c0 6.5 7 12 7 12z" />
-                      <circle cx="12" cy="10" r="2.5" />
-                    </svg>
-                  )}
-                </span>
-                <h4 className="text-lg font-semibold" style={{ color: headingColor }}>
-                  {data.address || 'Your address'}
-                </h4>
-              </div>
-              <p style={{ color: cardText }}>{data.address || 'Your address'}</p>
-            </div>
           </div>
         </div>
       </div>

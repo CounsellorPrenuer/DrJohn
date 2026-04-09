@@ -55,7 +55,7 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
 
   const navBg = '#ffffff'
   const navText = '#e60000'
-  const logoUrl = `${process.env.NODE_ENV === 'production' ? '/Dr-John' : ''}/oversimplify-logo.png`
+  const logoUrl = `${process.env.NODE_ENV === 'production' ? '/DrJohn' : ''}/oversimplify-logo.png`
 
   return (
     <nav

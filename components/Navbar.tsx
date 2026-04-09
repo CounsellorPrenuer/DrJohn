@@ -30,13 +30,14 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
     setNavigation(initialNavigation)
   }, [initialNavigation])
 
-  const navLinks = (navigation?.menuItems || [])
-    .filter((item) => item.isVisible !== false)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map((item) => ({
-      href: item.sectionId ? `#${item.sectionId}` : '#',
-      label: item.label || ''
-    }))
+  const navLinks = [
+    { href: '#home', label: 'Home' },
+    { href: '#methodology', label: 'MENTORIA Career Journey' },
+    { href: '#services', label: 'Services' },
+    { href: '#about', label: 'Meet the MENTOR' },
+    { href: '#testimonials', label: 'Testimonials' },
+    { href: '#blog', label: 'COURSES & BLOG' },
+  ]
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()

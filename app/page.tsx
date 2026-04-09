@@ -5,7 +5,6 @@ import TestimonialCard from '@/components/TestimonialCard'
 import BlogSection from '@/components/BlogSection'
 import ContactSection from '@/components/ContactSection'
 import MethodologySection from '@/components/MethodologySection'
-import MentoriaProgram from '@/components/MentoriaProgram'
 import { fetchSanityData } from '@/lib/sanity'
 import {
   HERO_QUERY,
@@ -16,8 +15,7 @@ import {
   TESTIMONIALS_SECTION_QUERY,
   TESTIMONIALS_QUERY,
   BLOG_SECTION_QUERY,
-  CONTACT_SECTION_QUERY,
-  MENTORIA_QUERY
+  CONTACT_SECTION_QUERY
 } from '@/lib/queries'
 import { METHODOLOGY_SECTION_QUERY } from '@/lib/methodologyQueries'
 
@@ -32,8 +30,7 @@ export default async function Home() {
     fetchSanityData(TESTIMONIALS_SECTION_QUERY),
     fetchSanityData(TESTIMONIALS_QUERY),
     fetchSanityData(BLOG_SECTION_QUERY),
-    fetchSanityData(CONTACT_SECTION_QUERY),
-    fetchSanityData(MENTORIA_QUERY)
+    fetchSanityData(CONTACT_SECTION_QUERY)
   ])
 
   const [
@@ -46,8 +43,7 @@ export default async function Home() {
     testimonialsSection,
     testimonials,
     blogSection,
-    contactSection,
-    mentoria
+    contactSection
   ] = results.map((result) => (result.status === 'fulfilled' ? result.value : null))
 
   return (
@@ -56,7 +52,6 @@ export default async function Home() {
       <Hero section={heroSection} />
 
       {/* Mentoria Journey */}
-      {mentoria ? <MentoriaProgram mentoria={mentoria} /> : null}
       {methodologySection ? <MethodologySection section={methodologySection} /> : null}
 
       {/* Services Section */}

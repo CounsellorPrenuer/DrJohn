@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { urlFor } from '@/lib/sanity'
@@ -29,6 +32,10 @@ type BlogSectionProps = {
 }
 
 export default function BlogSection({ section }: BlogSectionProps) {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => setIsMounted(true), [])
+
   if (!section || !section.articles || section.articles.length === 0) return null
 
   const bgColor = section.backgroundColor || '#ffffff'
@@ -63,7 +70,7 @@ export default function BlogSection({ section }: BlogSectionProps) {
             >
               <BlogHeader article={article} cardHeadingColor={cardHeadingColor} cardTextColor={cardTextColor} />
 
-              {article.content && article.content.length > 0 && (
+              {isMounted && article.content && article.content.length > 0 && (
                 <div className="mt-6">
                   <PortableText
                     value={prepareContent(article.content)}

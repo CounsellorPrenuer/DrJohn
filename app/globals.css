@@ -44,6 +44,6 @@
 }
 
 body {
-    /* Background and text colors are primarily managed in layout.tsx using Sanity settings */
-    /* background-color: blue; /* Removed as this was breaking aesthetics */
+    /* Keeping existing body style if needed, though layout.tsx overrides it */
+    background-color: blue;
 }

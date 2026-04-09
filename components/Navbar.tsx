@@ -30,14 +30,13 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
     setNavigation(initialNavigation)
   }, [initialNavigation])
 
-  const navLinks = [
-    { href: '#home', label: 'Home' },
-    { href: '#methodology', label: 'MENTORIA Career Journey' },
-    { href: '#services', label: 'Services' },
-    { href: '#about', label: 'Meet the MENTOR' },
-    { href: '#testimonials', label: 'Testimonials' },
-    { href: '#blog', label: 'COURSES & BLOG' },
-  ]
+  const navLinks = (navigation?.menuItems || [])
+    .filter((item) => item.isVisible !== false)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((item) => ({
+      href: item.sectionId ? `#${item.sectionId}` : '#',
+      label: item.label || ''
+    }))
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault()
@@ -56,7 +55,7 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
 
   const navBg = '#ffffff'
   const navText = '#e60000'
-  const logoUrl = `${process.env.NODE_ENV === 'production' ? '/DrJohn' : ''}/oversimplify-logo.png`
+  const logoUrl = `${process.env.NODE_ENV === 'production' ? '/Dr-John' : ''}/oversimplify-logo.png`
 
   return (
     <nav

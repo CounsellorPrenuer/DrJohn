@@ -310,13 +310,7 @@ function isLifePlanningHeading(text: string) {
 }
 
 function prepareContent(value: any[]) {
-  const normalized = normalizePortableBlocks(value).filter((block: any) => !isHiddenImage(block))
-  return placeCriticalTableImages(normalized)
-}
-
-function isHiddenImage(block: any) {
-  if (!block || block._type !== 'image' || typeof block.caption !== 'string') return false
-  return /^DOC_MEDIA:\s*(image1\.png|image2\.png|image3\.png|image6\.png)$/i.test(block.caption)
+  return normalizePortableBlocks(value)
 }
 
 function normalizePortableBlocks(value: any[] | undefined) {
@@ -357,87 +351,6 @@ function normalizePortableBlocks(value: any[] | undefined) {
       if (!b) return false
       if (b._type !== 'block') return true
       const t = plainTextFromBlock(b)
-      if (!t) return false
-      return !isTableCellNoise(t)
+      return !!t
     })
-}
-
-function placeCriticalTableImages(blocks: any[]) {
-  const imagesByFile = new Map<string, any>()
-  for (const b of blocks) {
-    if (b?._type === 'image' && typeof b.caption === 'string') {
-      const m = b.caption.match(/^DOC_MEDIA:\s*(image\d+\.png)$/i)
-      if (m) imagesByFile.set(m[1].toLowerCase(), b)
-    }
-  }
-
-  const used = new Set<string>()
-  const out: any[] = []
-  let inTimelineNoise = false
-
-  for (const b of blocks) {
-    if (b?._type === 'block') {
-      const t = plainTextFromBlock(b)
-
-      if (/Life Planning Timeline Using a MENTOR \(Sample\)/i.test(t)) {
-        inTimelineNoise = true
-        out.push(b)
-        continue
-      }
-
-      if (/FOCUS AREAS FOR FUTURE LEARNING/i.test(t)) inTimelineNoise = false
-
-      if (/Questions include:/i.test(t)) {
-        out.push(b)
-        inject('image7.png', imagesByFile, used, out)
-        continue
-      }
-
-      if (/BELBIN.?S TEAM RULES/i.test(t) || /Belbin.?s nine team roles/i.test(t)) {
-        out.push(b)
-        inject('image9.png', imagesByFile, used, out)
-        continue
-      }
-
-      if (inTimelineNoise && isTimelineTableNoise(t)) continue
-    }
-
-    if (b?._type === 'image' && typeof b.caption === 'string') {
-      const m = b.caption.match(/^DOC_MEDIA:\s*(image\d+\.png)$/i)
-      if (m && used.has(m[1].toLowerCase())) continue
-    }
-
-    out.push(b)
-  }
-
-  return out
-}
-
-function inject(file: string, map: Map<string, any>, used: Set<string>, out: any[]) {
-  const key = file.toLowerCase()
-  const img = map.get(key)
-  if (img && !used.has(key)) {
-    out.push(img)
-    used.add(key)
-  }
-}
-
-function isTableCellNoise(text: string) {
-  const t = text.trim()
-  const headers = new Set(['Year', '(Age)', 'Location', 'Education', 'Professional', 'Financial', 'Family', 'Others'])
-  if (headers.has(t)) return true
-  if (/^\d{4}$/.test(t)) return true
-  if (/^\(\d{1,3}\)$/.test(t)) return true
-  if (/^(CHILD\s*\d+|MARRIAGE|HSC|SSC|MBA\s*\d?)$/i.test(t)) return true
-  return false
-}
-
-function isTimelineTableNoise(text: string) {
-  const t = text.trim()
-  if (!t) return true
-  if (/^\d{4}$/.test(t)) return true
-  if (/^\(\d{1,3}\)$/.test(t)) return true
-  if (/^(Year|\(Age\)|Location|Education|Professional|Financial|Family|Others)$/i.test(t)) return true
-  if (t.length <= 30 && !/[.!?:]/.test(t) && /\s/.test(t)) return true
-  return false
 }

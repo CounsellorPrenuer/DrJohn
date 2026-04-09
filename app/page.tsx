@@ -5,6 +5,7 @@ import TestimonialCard from '@/components/TestimonialCard'
 import BlogSection from '@/components/BlogSection'
 import ContactSection from '@/components/ContactSection'
 import MethodologySection from '@/components/MethodologySection'
+import FullWebsiteDocument from '@/components/FullWebsiteDocument'
 import { fetchSanityData } from '@/lib/sanity'
 import {
   HERO_QUERY,
@@ -15,7 +16,8 @@ import {
   TESTIMONIALS_SECTION_QUERY,
   TESTIMONIALS_QUERY,
   BLOG_SECTION_QUERY,
-  CONTACT_SECTION_QUERY
+  CONTACT_SECTION_QUERY,
+  FULL_WEBSITE_DOCUMENT_QUERY
 } from '@/lib/queries'
 import { METHODOLOGY_SECTION_QUERY } from '@/lib/methodologyQueries'
 
@@ -30,7 +32,8 @@ export default async function Home() {
     fetchSanityData(TESTIMONIALS_SECTION_QUERY),
     fetchSanityData(TESTIMONIALS_QUERY),
     fetchSanityData(BLOG_SECTION_QUERY),
-    fetchSanityData(CONTACT_SECTION_QUERY)
+    fetchSanityData(CONTACT_SECTION_QUERY),
+    fetchSanityData(FULL_WEBSITE_DOCUMENT_QUERY)
   ])
 
   const [
@@ -43,7 +46,8 @@ export default async function Home() {
     testimonialsSection,
     testimonials,
     blogSection,
-    contactSection
+    contactSection,
+    fullWebsiteDocument
   ] = results.map((result) => (result.status === 'fulfilled' ? result.value : null))
 
   return (
@@ -114,6 +118,9 @@ export default async function Home() {
 
       {/* Courses & Blog */}
       <BlogSection section={blogSection} />
+
+      {/* Full Website Document */}
+      {fullWebsiteDocument ? <FullWebsiteDocument document={fullWebsiteDocument} /> : null}
 
       {/* Contact Section */}
       {contactSection && <ContactSection section={contactSection} />}

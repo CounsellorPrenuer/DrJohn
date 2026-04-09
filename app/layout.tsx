@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 import { fetchSanityData } from '@/lib/sanity'
-import { NAVIGATION_QUERY, SITE_SETTINGS_QUERY } from '@/lib/queries'
+import { NAVIGATION_QUERY, SITE_SETTINGS_QUERY, FOOTER_QUERY, SERVICES_QUERY } from '@/lib/queries'
 
 export const metadata: Metadata = {
   title: 'MENTORIA - Career Guidance',
@@ -22,6 +23,8 @@ export default async function RootLayout({
   try {
     let settings: any = {}
     let navigation: any = null
+    let footerData: any = null
+    let servicesData: any = null
 
     const fs = await import('node:fs')
     fs.appendFileSync('debug.log', 'RootLayout: Start\n')
@@ -33,6 +36,9 @@ export default async function RootLayout({
 
       navigation = await fetchSanityData(NAVIGATION_QUERY)
       fs.appendFileSync('debug.log', 'RootLayout: Fetched navigation\n')
+
+      footerData = await fetchSanityData(FOOTER_QUERY)
+      servicesData = await fetchSanityData(SERVICES_QUERY)
     } catch (fetchError: any) {
       console.error('Data fetch error:', fetchError)
       fs.appendFileSync('debug.log', `RootLayout: Fetch Error: ${fetchError.message}\n`)
@@ -61,6 +67,7 @@ export default async function RootLayout({
         <body style={style}>
           <Navbar navigation={navigation} />
           {children}
+          <Footer footer={footerData} services={servicesData} />
         </body>
       </html>
     )

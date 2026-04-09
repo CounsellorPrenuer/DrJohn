@@ -1,0 +1,89 @@
+﻿
+> mentoria-sanity-studio@1.0.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 3.4s
+  Running TypeScript ...
+  Collecting page data using 21 workers ...
+  Generating static pages using 21 workers (0/10) ...
+Page rendering started
+  Generating static pages using 21 workers (2/10) 
+  Generating static pages using 21 workers (4/10) 
+  Generating static pages using 21 workers (7/10) 
+node.exe : Error in 
+Home page: 
+TypeError: fetch 
+failed
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Error i   
+ n Home p...r: fe    
+tch failed:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+    at ignore-listed 
+frames {
+  isNetworkError: 
+true,
+  request: [Object],
+  [cause]: Error: 
+self-signed 
+certificate in 
+certificate chain
+      at 
+ignore-listed frames 
+{
+    code: 'SELF_SIGNE
+D_CERT_IN_CHAIN'
+  }
+}
+Error occurred 
+prerendering page 
+"/". Read more: https
+://nextjs.org/docs/me
+ssages/prerender-erro
+r
+TypeError: fetch 
+failed
+    at ignore-listed 
+frames {
+  isNetworkError: 
+true,
+  request: [Object],
+  digest: 
+'172838375',
+  [cause]: Error: 
+self-signed 
+certificate in 
+certificate chain
+      at 
+ignore-listed frames 
+{
+    code: 'SELF_SIGNE
+D_CERT_IN_CHAIN'
+  }
+}
+Export encountered 
+an error on /page: 
+/, exiting the build.
+Γ¿» Next.js build 
+worker exited with 
+code: 1 and signal: 
+null

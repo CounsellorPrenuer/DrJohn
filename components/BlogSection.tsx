@@ -1,10 +1,6 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { urlFor } from '@/lib/sanity'
-import LifePlanningTable from '@/components/LifePlanningTable'
 
 type BlogPost = {
   _id: string
@@ -32,10 +28,6 @@ type BlogSectionProps = {
 }
 
 export default function BlogSection({ section }: BlogSectionProps) {
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => setIsMounted(true), [])
-
   if (!section || !section.articles || section.articles.length === 0) return null
 
   const bgColor = section.backgroundColor || '#ffffff'
@@ -46,7 +38,7 @@ export default function BlogSection({ section }: BlogSectionProps) {
   const cardTextColor = section.cardTextColor || '#374151'
 
   return (
-    <section id="blog" className="px-6 py-16" style={{ backgroundColor: bgColor }}>
+    <section id="blogs" className="px-6 py-16" style={{ backgroundColor: bgColor }}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
           {section.sectionTitle && (
@@ -70,50 +62,17 @@ export default function BlogSection({ section }: BlogSectionProps) {
             >
               <BlogHeader article={article} cardHeadingColor={cardHeadingColor} cardTextColor={cardTextColor} />
 
-              {isMounted && article.content && article.content.length > 0 && (
+              {article.content && article.content.length > 0 && (
                 <div className="mt-6">
                   <PortableText
-                    value={prepareContent(article.content)}
+                    value={article.content}
                     components={{
                       block: {
-                        normal: ({ children, value }) => {
-                          const text = plainTextFromBlock(value)
-                          const inlineBullets = splitInlineBullets(text)
-                          if (inlineBullets.length > 1) {
-                            return (
-                              <ul className="mb-4 ml-7 list-disc space-y-2">
-                                {inlineBullets.map((item, idx) => (
-                                  <li key={idx} style={{ color: cardTextColor }} className="text-lg leading-relaxed break-words">
-                                    {item}
-                                  </li>
-                                ))}
-                              </ul>
-                            )
-                          }
-
-                          const headingLike = isWeekHeading(text) || isHeadingLike(text)
-                          if (isLifePlanningHeading(text)) {
-                            return (
-                              <>
-                                <p
-                                  style={{ color: cardTextColor }}
-                                  className={`mb-4 ${headingLike ? 'text-2xl font-bold' : 'text-lg'} leading-relaxed break-words`}
-                                >
-                                  {children}
-                                </p>
-                                <LifePlanningTable />
-                              </>
-                            )
-                          }
-                          return (
-                            <p
-                              style={{ color: cardTextColor }}
-                              className={`mb-4 ${headingLike ? 'text-2xl font-bold' : 'text-lg'} leading-relaxed break-words`}
-                            >
-                              {children}
-                            </p>
-                          )
-                        },
+                        normal: ({ children }) => (
+                          <p style={{ color: cardTextColor }} className="mb-4 text-lg leading-relaxed break-words">
+                            {children}
+                          </p>
+                        ),
                         h2: ({ children }) => (
                           <h2 style={{ color: cardHeadingColor }} className="mb-4 mt-10 text-3xl font-bold">
                             {children}
@@ -130,8 +89,16 @@ export default function BlogSection({ section }: BlogSectionProps) {
                         number: ({ children }) => <ol className="mb-4 ml-7 list-decimal space-y-2">{children}</ol>,
                       },
                       listItem: {
-                        bullet: ({ children, value }) => renderSplitListItem(children, value, cardTextColor),
-                        number: ({ children, value }) => renderSplitListItem(children, value, cardTextColor),
+                        bullet: ({ children }) => (
+                          <li style={{ color: cardTextColor }} className="text-lg leading-relaxed break-words">
+                            {children}
+                          </li>
+                        ),
+                        number: ({ children }) => (
+                          <li style={{ color: cardTextColor }} className="text-lg leading-relaxed break-words">
+                            {children}
+                          </li>
+                        ),
                       },
                       marks: {
                         red: ({ children }) => <span style={{ color: '#dc2626' }}>{children}</span>,
@@ -151,12 +118,12 @@ export default function BlogSection({ section }: BlogSectionProps) {
                       },
                       types: {
                         image: ({ value }) => {
-                          const src = value?.asset ? urlFor(value).width(1600).url() : ''
+                          const src = value?.asset ? urlFor(value).width(1800).auto('format').url() : ''
                           if (!src) return null
-                          const alt = normalizeText(value?.alt || 'Document image')
+                          const alt = value?.alt || 'Document image'
                           return (
                             <figure className="my-8">
-                              <img src={src} alt={alt} className="w-full rounded-lg border border-gray-200" />
+                              <img src={src} alt={alt} className="w-full rounded-lg border border-gray-200" loading="lazy" />
                             </figure>
                           )
                         },
@@ -183,8 +150,8 @@ function BlogHeader({
   cardTextColor: string
 }) {
   const thumbnailUrl = article.thumbnail?.asset ? urlFor(article.thumbnail).width(600).height(400).url() : null
-  const safeTitle = normalizeText(article.title || 'Untitled Article')
-  const safeExcerpt = article.excerpt ? normalizeText(article.excerpt) : ''
+  const safeTitle = article.title || 'Untitled Article'
+  const safeExcerpt = article.excerpt || ''
   const formattedDate = formatDate(article.publishDate)
 
   return (
@@ -205,7 +172,7 @@ function BlogHeader({
         <div style={{ color: cardTextColor, opacity: 0.75 }} className="mb-3 flex flex-wrap gap-2 text-sm">
           {formattedDate && <span>{formattedDate}</span>}
           {formattedDate && article.author && <span>•</span>}
-          {article.author && <span>By {normalizeText(article.author)}</span>}
+          {article.author && <span>By {article.author}</span>}
         </div>
       )}
 
@@ -234,210 +201,4 @@ function formatDate(dateString?: string) {
   } catch {
     return null
   }
-}
-
-function normalizeText(input: string) {
-  const s = input || ''
-  return s
-    .replace(/\u00a0/g, ' ')
-    .replace(/\u00c2/g, '')
-    .replace(/â€¢/g, '•')
-    .replace(/â€“/g, '–')
-    .replace(/â€”/g, '—')
-    .replace(/â€˜/g, '‘')
-    .replace(/â€™/g, '’')
-    .replace(/â€œ/g, '“')
-    .replace(/â€/g, '”')
-    .replace(/â€\u009d/g, '”')
-    .replace(/â†’/g, '→')
-    .replace(/â†/g, '†')
-    .replace(/âˆ’/g, '−')
-    .replace(/â€¦/g, '…')
-}
-
-function plainTextFromBlock(block: any) {
-  if (!block?.children || !Array.isArray(block.children)) return ''
-  return block.children.map((c: any) => normalizeText(c?.text || '')).join('').trim()
-}
-
-function splitInlineBullets(text: string) {
-  const normalized = normalizeText(text).trim()
-  if (!/[•▪·]/.test(normalized)) return [normalized]
-  return normalized
-    .split(/[•▪·]/)
-    .map((x) => x.replace(/^\s*[–-]\s*/, '').trim())
-    .filter(Boolean)
-}
-
-function renderSplitListItem(children: any, value: any, color: string) {
-  const text = plainTextFromBlock(value)
-  const parts = splitInlineBullets(text)
-  if (parts.length <= 1) {
-    return (
-      <li style={{ color }} className="text-lg leading-relaxed break-words">
-        {children}
-      </li>
-    )
-  }
-  return (
-    <li style={{ color }} className="list-none">
-      <ul className="space-y-2">
-        {parts.map((p, i) => (
-          <li key={i} className="list-disc text-lg leading-relaxed break-words">
-            {p}
-          </li>
-        ))}
-      </ul>
-    </li>
-  )
-}
-
-function isWeekHeading(text: string) {
-  return /^week\s*\d+/i.test(text.trim())
-}
-
-function isHeadingLike(text: string) {
-  const t = text.trim()
-  if (!t) return false
-  if (/^(step|module|lesson|day|chapter|session)\s+\d+/i.test(t)) return true
-  if (/^[A-Z0-9\s&/().,'-]{4,120}$/.test(t)) return true
-  if (t.endsWith(':') && t.length <= 140) return true
-  return /^(important|types of|how to|examples of|before subscribing|interview process|qualities|services|testimonials|courses|contact|overview|category)/i.test(t)
-}
-
-function isLifePlanningHeading(text: string) {
-  return /Life Planning Timeline Using a MENTOR \(Sample\)/i.test(text.trim())
-}
-
-function prepareContent(value: any[]) {
-  const normalized = normalizePortableBlocks(value).filter((block: any) => !isHiddenImage(block))
-  return placeCriticalTableImages(normalized)
-}
-
-function isHiddenImage(block: any) {
-  if (!block || block._type !== 'image' || typeof block.caption !== 'string') return false
-  return /^DOC_MEDIA:\s*(image1\.png|image2\.png|image3\.png|image6\.png)$/i.test(block.caption)
-}
-
-function normalizePortableBlocks(value: any[] | undefined) {
-  if (!Array.isArray(value)) return []
-
-  return value
-    .map((block) => {
-      if (!block) return null
-      if (block._type !== 'block') return block
-
-      const cloned: any = {
-        ...block,
-        children: Array.isArray(block.children)
-          ? block.children.map((child: any) => ({ ...child, text: normalizeText(child?.text || '') }))
-          : block.children,
-        markDefs: Array.isArray(block.markDefs)
-          ? block.markDefs.map((def: any) => (def?._type === 'link' ? { ...def, href: normalizeText(def.href || '') } : def))
-          : block.markDefs,
-      }
-
-      const text = plainTextFromBlock(cloned)
-      if (!cloned.listItem && /^\s*([•▪·*-])\s+/.test(text)) {
-        cloned.listItem = 'bullet'
-        cloned.level = 0
-        const first = cloned.children?.[0]
-        if (first?.text) first.text = first.text.replace(/^\s*([•▪·*-])\s+/, '')
-      }
-      if (!cloned.listItem && /^\s*\d+[.)]\s+/.test(text)) {
-        cloned.listItem = 'number'
-        cloned.level = 0
-        const first = cloned.children?.[0]
-        if (first?.text) first.text = first.text.replace(/^\s*\d+[.)]\s+/, '')
-      }
-
-      return cloned
-    })
-    .filter((b: any) => {
-      if (!b) return false
-      if (b._type !== 'block') return true
-      const t = plainTextFromBlock(b)
-      if (!t) return false
-      return !isTableCellNoise(t)
-    })
-}
-
-function placeCriticalTableImages(blocks: any[]) {
-  const imagesByFile = new Map<string, any>()
-  for (const b of blocks) {
-    if (b?._type === 'image' && typeof b.caption === 'string') {
-      const m = b.caption.match(/^DOC_MEDIA:\s*(image\d+\.png)$/i)
-      if (m) imagesByFile.set(m[1].toLowerCase(), b)
-    }
-  }
-
-  const used = new Set<string>()
-  const out: any[] = []
-  let inTimelineNoise = false
-
-  for (const b of blocks) {
-    if (b?._type === 'block') {
-      const t = plainTextFromBlock(b)
-
-      if (/Life Planning Timeline Using a MENTOR \(Sample\)/i.test(t)) {
-        inTimelineNoise = true
-        out.push(b)
-        continue
-      }
-
-      if (/FOCUS AREAS FOR FUTURE LEARNING/i.test(t)) inTimelineNoise = false
-
-      if (/Questions include:/i.test(t)) {
-        out.push(b)
-        inject('image7.png', imagesByFile, used, out)
-        continue
-      }
-
-      if (/BELBIN.?S TEAM RULES/i.test(t) || /Belbin.?s nine team roles/i.test(t)) {
-        out.push(b)
-        inject('image9.png', imagesByFile, used, out)
-        continue
-      }
-
-      if (inTimelineNoise && isTimelineTableNoise(t)) continue
-    }
-
-    if (b?._type === 'image' && typeof b.caption === 'string') {
-      const m = b.caption.match(/^DOC_MEDIA:\s*(image\d+\.png)$/i)
-      if (m && used.has(m[1].toLowerCase())) continue
-    }
-
-    out.push(b)
-  }
-
-  return out
-}
-
-function inject(file: string, map: Map<string, any>, used: Set<string>, out: any[]) {
-  const key = file.toLowerCase()
-  const img = map.get(key)
-  if (img && !used.has(key)) {
-    out.push(img)
-    used.add(key)
-  }
-}
-
-function isTableCellNoise(text: string) {
-  const t = text.trim()
-  const headers = new Set(['Year', '(Age)', 'Location', 'Education', 'Professional', 'Financial', 'Family', 'Others'])
-  if (headers.has(t)) return true
-  if (/^\d{4}$/.test(t)) return true
-  if (/^\(\d{1,3}\)$/.test(t)) return true
-  if (/^(CHILD\s*\d+|MARRIAGE|HSC|SSC|MBA\s*\d?)$/i.test(t)) return true
-  return false
-}
-
-function isTimelineTableNoise(text: string) {
-  const t = text.trim()
-  if (!t) return true
-  if (/^\d{4}$/.test(t)) return true
-  if (/^\(\d{1,3}\)$/.test(t)) return true
-  if (/^(Year|\(Age\)|Location|Education|Professional|Financial|Family|Others)$/i.test(t)) return true
-  if (t.length <= 30 && !/[.!?:]/.test(t) && /\s/.test(t)) return true
-  return false
 }

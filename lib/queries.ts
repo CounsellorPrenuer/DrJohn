@@ -130,7 +130,7 @@ export const TESTIMONIALS_QUERY = `*[_type == "testimonial"]{
   textColor
 }`
 
-export const BLOG_SECTION_QUERY = `*[_type == "blogSection"][0]{
+export const BLOG_SECTION_QUERY = `*[_type == "blogSection"] | order(_updatedAt desc)[0]{
   sectionTitle,
   sectionSubtitle,
   backgroundColor,
@@ -240,7 +240,7 @@ export const FOOTER_QUERY = `*[_type == "footer"][0]{
   accentColor
 }`
 
-export const FULL_WEBSITE_DOCUMENT_QUERY = `*[_type == "fullWebsiteDocument"][0]{
+export const FULL_WEBSITE_DOCUMENT_QUERY = `*[_type == "fullWebsiteDocument"] | order(_updatedAt desc)[0]{
   title,
   content
 }`

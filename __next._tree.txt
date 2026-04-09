@@ -1,2 +1,11 @@
 :HL["/DrJohn/_next/static/chunks/5ba6f38cdfbe191c.css","style"]
-0:{"buildId":"xp2SkDQqAxCEjZA7LAQKS","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/6df78aae46fe71e98c056fc9877d5cb819fbdab2-1200x550.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/c9c9607ff4b03c27eb05c2967f89e6a451baf881-740x416.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/b9b31996af222b42f3a5d1cc257689a4740adfc4-300x200.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/6634aa1f1cc54f9be9a582456f33ec074d6b7d52-1200x316.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/4ae46266a806b443aca8f0bcd3f244c09c529fc5-1200x484.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/2fb891cd7d51861c09b979b2ad8bce5257f162f5-1200x682.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/2eea8362d90bed645ccf33cee6eaaf3e21e642a7-1200x1342.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/8396708bc074b5d0733a7bd18a8966b50d5c1fde-1200x811.png?w=1600","image"]
+:HL["https://cdn.sanity.io/images/6w0t9e7l/production/767ff2a896bac1649797d1bda054b83705d225de-1200x1069.png?w=1600","image"]
+0:{"buildId":"izrLUPpe-uz9nlnQOeSWN","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}

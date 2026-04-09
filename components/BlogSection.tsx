@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { urlFor } from '@/lib/sanity'
-import LifePlanningTable from '@/components/LifePlanningTable'
 
 type BlogPost = {
   _id: string
@@ -46,7 +45,7 @@ export default function BlogSection({ section }: BlogSectionProps) {
   const cardTextColor = section.cardTextColor || '#374151'
 
   return (
-    <section id="blog" className="px-6 py-16" style={{ backgroundColor: bgColor }}>
+    <section id="blogs" className="px-6 py-16" style={{ backgroundColor: bgColor }}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 text-center">
           {section.sectionTitle && (
@@ -92,19 +91,6 @@ export default function BlogSection({ section }: BlogSectionProps) {
                           }
 
                           const headingLike = isWeekHeading(text) || isHeadingLike(text)
-                          if (isLifePlanningHeading(text)) {
-                            return (
-                              <>
-                                <p
-                                  style={{ color: cardTextColor }}
-                                  className={`mb-4 ${headingLike ? 'text-2xl font-bold' : 'text-lg'} leading-relaxed break-words`}
-                                >
-                                  {children}
-                                </p>
-                                <LifePlanningTable />
-                              </>
-                            )
-                          }
                           return (
                             <p
                               style={{ color: cardTextColor }}
@@ -303,10 +289,6 @@ function isHeadingLike(text: string) {
   if (/^[A-Z0-9\s&/().,'-]{4,120}$/.test(t)) return true
   if (t.endsWith(':') && t.length <= 140) return true
   return /^(important|types of|how to|examples of|before subscribing|interview process|qualities|services|testimonials|courses|contact|overview|category)/i.test(t)
-}
-
-function isLifePlanningHeading(text: string) {
-  return /Life Planning Timeline Using a MENTOR \(Sample\)/i.test(text.trim())
 }
 
 function prepareContent(value: any[]) {

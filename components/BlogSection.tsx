@@ -1,6 +1,10 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import { urlFor } from '@/lib/sanity'
+import LifePlanningTable from '@/components/LifePlanningTable'
 
 type BlogPost = {
   _id: string
@@ -28,6 +32,10 @@ type BlogSectionProps = {
 }
 
 export default function BlogSection({ section }: BlogSectionProps) {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => setIsMounted(true), [])
+
   if (!section || !section.articles || section.articles.length === 0) return null
 
   const bgColor = section.backgroundColor || '#ffffff'
@@ -62,7 +70,7 @@ export default function BlogSection({ section }: BlogSectionProps) {
             >
               <BlogHeader article={article} cardHeadingColor={cardHeadingColor} cardTextColor={cardTextColor} />
 
-              {article.content && article.content.length > 0 && (
+              {isMounted && article.content && article.content.length > 0 && (
                 <div className="mt-6">
                   <PortableText
                     value={prepareContent(article.content)}
@@ -84,6 +92,19 @@ export default function BlogSection({ section }: BlogSectionProps) {
                           }
 
                           const headingLike = isWeekHeading(text) || isHeadingLike(text)
+                          if (isLifePlanningHeading(text)) {
+                            return (
+                              <>
+                                <p
+                                  style={{ color: cardTextColor }}
+                                  className={`mb-4 ${headingLike ? 'text-2xl font-bold' : 'text-lg'} leading-relaxed break-words`}
+                                >
+                                  {children}
+                                </p>
+                                <LifePlanningTable />
+                              </>
+                            )
+                          }
                           return (
                             <p
                               style={{ color: cardTextColor }}
@@ -109,16 +130,8 @@ export default function BlogSection({ section }: BlogSectionProps) {
                         number: ({ children }) => <ol className="mb-4 ml-7 list-decimal space-y-2">{children}</ol>,
                       },
                       listItem: {
-                        bullet: ({ children, value }) => (
-                          <li style={{ color: cardTextColor }} className="text-lg leading-relaxed break-words">
-                            {renderListItem(children, value)}
-                          </li>
-                        ),
-                        number: ({ children, value }) => (
-                          <li style={{ color: cardTextColor }} className="text-lg leading-relaxed break-words">
-                            {renderListItem(children, value)}
-                          </li>
-                        ),
+                        bullet: ({ children, value }) => renderSplitListItem(children, value, cardTextColor),
+                        number: ({ children, value }) => renderSplitListItem(children, value, cardTextColor),
                       },
                       marks: {
                         red: ({ children }) => <span style={{ color: '#dc2626' }}>{children}</span>,
@@ -138,12 +151,12 @@ export default function BlogSection({ section }: BlogSectionProps) {
                       },
                       types: {
                         image: ({ value }) => {
-                          const src = value?.asset ? urlFor(value).width(1800).auto('format').url() : ''
+                          const src = value?.asset ? urlFor(value).width(1600).url() : ''
                           if (!src) return null
                           const alt = normalizeText(value?.alt || 'Document image')
                           return (
                             <figure className="my-8">
-                              <img src={src} alt={alt} className="w-full rounded-lg border border-gray-200" loading="lazy" />
+                              <img src={src} alt={alt} className="w-full rounded-lg border border-gray-200" />
                             </figure>
                           )
                         },
@@ -256,11 +269,27 @@ function splitInlineBullets(text: string) {
     .filter(Boolean)
 }
 
-function renderListItem(children: any, value: any) {
+function renderSplitListItem(children: any, value: any, color: string) {
   const text = plainTextFromBlock(value)
   const parts = splitInlineBullets(text)
-  if (parts.length <= 1) return children
-  return parts.join(' ')
+  if (parts.length <= 1) {
+    return (
+      <li style={{ color }} className="text-lg leading-relaxed break-words">
+        {children}
+      </li>
+    )
+  }
+  return (
+    <li style={{ color }} className="list-none">
+      <ul className="space-y-2">
+        {parts.map((p, i) => (
+          <li key={i} className="list-disc text-lg leading-relaxed break-words">
+            {p}
+          </li>
+        ))}
+      </ul>
+    </li>
+  )
 }
 
 function isWeekHeading(text: string) {
@@ -273,7 +302,11 @@ function isHeadingLike(text: string) {
   if (/^(step|module|lesson|day|chapter|session)\s+\d+/i.test(t)) return true
   if (/^[A-Z0-9\s&/().,'-]{4,120}$/.test(t)) return true
   if (t.endsWith(':') && t.length <= 140) return true
-  return /^(important|types of|how to|examples of|before subscribing|interview process|qualities|services|testimonials|courses|contact|overview|category|meet the mentor)/i.test(t)
+  return /^(important|types of|how to|examples of|before subscribing|interview process|qualities|services|testimonials|courses|contact|overview|category)/i.test(t)
+}
+
+function isLifePlanningHeading(text: string) {
+  return /Life Planning Timeline Using a MENTOR \(Sample\)/i.test(text.trim())
 }
 
 function prepareContent(value: any[]) {
@@ -340,22 +373,33 @@ function placeCriticalTableImages(blocks: any[]) {
 
   const used = new Set<string>()
   const out: any[] = []
+  let inTimelineNoise = false
 
   for (const b of blocks) {
     if (b?._type === 'block') {
       const t = plainTextFromBlock(b)
-      out.push(b)
+
       if (/Life Planning Timeline Using a MENTOR \(Sample\)/i.test(t)) {
-        inject('image7.png', imagesByFile, used, out)
-        inject('image8.png', imagesByFile, used, out)
+        inTimelineNoise = true
+        out.push(b)
+        continue
       }
+
+      if (/FOCUS AREAS FOR FUTURE LEARNING/i.test(t)) inTimelineNoise = false
+
       if (/Questions include:/i.test(t)) {
+        out.push(b)
+        inject('image7.png', imagesByFile, used, out)
+        continue
+      }
+
+      if (/BELBIN.?S TEAM RULES/i.test(t) || /Belbin.?s nine team roles/i.test(t)) {
+        out.push(b)
         inject('image9.png', imagesByFile, used, out)
+        continue
       }
-      if (/WEEK 46/i.test(t)) {
-        inject('image10.png', imagesByFile, used, out)
-      }
-      continue
+
+      if (inTimelineNoise && isTimelineTableNoise(t)) continue
     }
 
     if (b?._type === 'image' && typeof b.caption === 'string') {
@@ -385,5 +429,15 @@ function isTableCellNoise(text: string) {
   if (/^\d{4}$/.test(t)) return true
   if (/^\(\d{1,3}\)$/.test(t)) return true
   if (/^(CHILD\s*\d+|MARRIAGE|HSC|SSC|MBA\s*\d?)$/i.test(t)) return true
+  return false
+}
+
+function isTimelineTableNoise(text: string) {
+  const t = text.trim()
+  if (!t) return true
+  if (/^\d{4}$/.test(t)) return true
+  if (/^\(\d{1,3}\)$/.test(t)) return true
+  if (/^(Year|\(Age\)|Location|Education|Professional|Financial|Family|Others)$/i.test(t)) return true
+  if (t.length <= 30 && !/[.!?:]/.test(t) && /\s/.test(t)) return true
   return false
 }

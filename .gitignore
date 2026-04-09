@@ -10,9 +10,6 @@ yarn.lock
 # Production
 /build
 /.next
-/out
-/docs
-/dist
 
 # Sanity Schemas and Studio (kept local only)
 /schemas/
@@ -35,22 +32,6 @@ sanity.config.ts
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-debug.log
-build.log
-build_utf8.log
-next-dev.out.log
-next-dev.err.log
-sanity-dev.out.log
-sanity-dev.err.log
-
-# Local migration artifacts
-Website.docx
-Website.zip
-website_*.json
-website_extracted.txt
-_docx_raw/
-test-sanity.cjs
-test-sanity.js
 
 # Editor
 .vscode/

@@ -109,41 +109,37 @@ export default function ContactSection({ section }: ContactSectionProps) {
 
     if (Object.values(nextErrors).some(Boolean)) return
 
-    if (!workerConfigured) {
-      setSubmitStatus({
-        type: 'error',
-        message: 'Contact endpoint is not configured yet. Please set NEXT_PUBLIC_CF_WORKER_URL.'
-      })
-      return
-    }
-
     setSubmitting(true)
     try {
-      const response = await fetch(`${workerBaseUrl}/lead/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          purpose: formData.purpose.trim(),
-          message: formData.message.trim(),
-          source: 'website-contact-form'
+      if (workerConfigured) {
+        const response = await fetch(`${workerBaseUrl}/lead/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
+            purpose: formData.purpose.trim(),
+            message: formData.message.trim(),
+            source: 'website-contact-form'
+          })
         })
-      })
 
-      const payload = await response.json().catch(() => null)
-      if (!response.ok) {
-        setSubmitStatus({
-          type: 'error',
-          message: payload?.message || 'Unable to submit your form right now. Please try again.'
-        })
-        return
+        const payload = await response.json().catch(() => null)
+        if (!response.ok) {
+          setSubmitStatus({
+            type: 'error',
+            message: payload?.message || 'Unable to submit your form right now. Please try again.'
+          })
+          return
+        }
       }
 
       setSubmitStatus({
         type: 'success',
-        message: payload?.message || 'Thank you. We have received your details and will contact you shortly.'
+        message: workerConfigured
+          ? 'Thank you. We have received your details and will contact you shortly.'
+          : 'Draft email opened. Please press Send to complete your inquiry.'
       })
 
       const mailUrl = buildMailtoUrl({

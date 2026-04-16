@@ -62,32 +62,29 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
       return
     }
 
-    if (!workerConfigured) {
-      setErrors({ form: 'Contact endpoint is not configured. Set NEXT_PUBLIC_CF_WORKER_URL.' })
-      return
-    }
-
     setSubmitting(true)
     setErrors({})
 
     try {
-      const response = await fetch(`${workerBaseUrl}/lead/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: '',
-          purpose: '',
-          message: formData.message.trim(),
-          source: 'website-contact-form-basic'
+      if (workerConfigured) {
+        const response = await fetch(`${workerBaseUrl}/lead/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            phone: '',
+            purpose: '',
+            message: formData.message.trim(),
+            source: 'website-contact-form-basic'
+          })
         })
-      })
-      const payload = await response.json().catch(() => null)
+        const payload = await response.json().catch(() => null)
 
-      if (!response.ok) {
-        setErrors({ form: payload?.message || 'Unable to submit your form right now. Please try again.' })
-        return
+        if (!response.ok) {
+          setErrors({ form: payload?.message || 'Unable to submit your form right now. Please try again.' })
+          return
+        }
       }
 
       const mailUrl = buildMailtoUrl({

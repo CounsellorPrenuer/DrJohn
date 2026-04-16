@@ -27,107 +27,59 @@ interface PackagePlan {
 
 const STANDARD_PACKAGES_FALLBACK: PackagePlan[] = [
   {
-    _id: 'pkg-1',
+    _id: 'pkg-career-starter',
     order: 1,
-    category: '8-9 Students',
-    planName: 'Discover',
-    price: 'Rs. 5,500',
+    category: 'SERVICES FOR STUDENTS',
+    planName: 'Career Starter',
+    price: '₹4,999',
+    shortDescription: 'A perfect starting point for students exploring career options.',
     benefits: [
-      'Psychometric assessment',
-      '1 career counselling session',
-      'Lifetime Knowledge Gateway access',
-      'Live webinar invites'
+      'AI-based Psychometric Career Assessment',
+      'Analysis of Interest, Abilities & Personality traits to select 10 Careers',
+      'One on one Meeting with student followed by meeting with parents for career clarity',
+      'Selection of Academic Courses, Colleges & Foreign Universities',
+      'Monitoring of progress every 6 months.',
+      'Webinars for Ai Awareness and Building a Life Plan',
+      'Preparation of CV for Projects, Apprenticeship, Job Interview & Group Discussion Training'
     ]
   },
   {
-    _id: 'pkg-2',
+    _id: 'pkg-career-growth',
     order: 2,
-    category: '8-9 Students',
-    planName: 'Discover Plus+',
-    price: 'Rs. 15,000',
+    category: 'SERVICES FOR PROFESSIONALS',
+    planName: 'Career Growth',
+    price: '₹5,999',
+    shortDescription: 'Ideal for students and professionals ready to upskill and grow.',
     benefits: [
-      'Psychometric assessments',
-      '8 career counselling sessions (1/year)',
-      'Custom reports and study abroad guidance',
-      'CV building'
+      'A perfect starting point for students exploring career options.',
+      'AI-based Psychometric Career Assessment',
+      'Analysis of Interest, Abilities & Personality traits to select 10 Careers',
+      'One on one Meeting with student followed by meeting with parents for career clarity',
+      'Selection of Academic Courses, Colleges & Foreign Universities',
+      'Monitoring of progress every 6 months.',
+      'Webinars for Ai Awareness and Building a Life Plan',
+      'Preparation for Projects, Apprenticeship, Job Interview & Group Discussion Training',
+      'Training on use of Ai job Application Platform AARYA',
+      'Mentoring to build Skills to close the gap.'
     ]
   },
   {
-    _id: 'pkg-3',
+    _id: 'pkg-career-transformation',
     order: 3,
-    category: '10-12 Students',
-    planName: 'Achieve Online',
-    price: 'Rs. 5,999',
+    category: 'CONTINUOUS MENTORSHIP SERVICES',
+    planName: 'Career Transformation',
+    price: 'Custom Pricing',
+    shortDescription: 'For professionals seeking deep mentorship and long-term career transformation.',
     benefits: [
-      'Psychometric assessment',
-      '1 career counselling session',
-      'Lifetime Knowledge Gateway access',
-      'Pre-recorded webinars'
-    ]
-  },
-  {
-    _id: 'pkg-4',
-    order: 4,
-    category: '10-12 Students',
-    planName: 'Achieve Plus+',
-    price: 'Rs. 10,599',
-    benefits: [
-      'Psychometric assessment',
-      '4 career counselling sessions',
-      'Custom reports and study abroad guidance',
-      'CV reviews'
-    ]
-  },
-  {
-    _id: 'pkg-5',
-    order: 5,
-    category: 'Graduates',
-    planName: 'Ascend Online',
-    price: 'Rs. 6,499',
-    benefits: [
-      'Psychometric assessment',
-      '1 career counselling session',
-      'Lifetime Knowledge Gateway access',
-      'Pre-recorded webinars'
-    ]
-  },
-  {
-    _id: 'pkg-6',
-    order: 6,
-    category: 'Graduates',
-    planName: 'Ascend Plus+',
-    price: 'Rs. 10,599',
-    benefits: [
-      'Psychometric assessment',
-      '3 career counselling sessions',
-      'Certificate/online course info',
-      'CV reviews for jobs'
-    ]
-  },
-  {
-    _id: 'mp-3',
-    order: 7,
-    category: 'Working Professionals',
-    planName: 'Ascend Online',
-    price: 'Rs. 6,499',
-    benefits: [
-      'Psychometric assessment',
-      '1 career counselling session',
-      'Lifetime Knowledge Gateway access',
-      'Pre-recorded webinars'
-    ]
-  },
-  {
-    _id: 'mp-2',
-    order: 8,
-    category: 'Working Professionals',
-    planName: 'Ascend Plus+',
-    price: 'Rs. 10,599',
-    benefits: [
-      'Psychometric assessment',
-      '3 career counselling sessions',
-      'Certificate/online course info',
-      'CV reviews for jobs'
+      'AI-based Psychometric Career Assessment',
+      'Analysis of Interest, Abilities & Personality traits to select 10 Careers',
+      'One on one followed by meeting with parents for career clarity',
+      'Selection of Academic Courses, Colleges & Foreign Universities',
+      'Monitoring of progress every 6 months.',
+      'Webinars for Ai Awareness and Building a Life Plan',
+      'Preparation for Projects, Apprenticeship, Job Interview & Group Discussion Training',
+      'Training on use of Ai job Application Platform AARYA',
+      'Leadership & Growth Coaching / Change of Functional Area/ Certifications'
     ]
   }
 ]
@@ -154,85 +106,93 @@ type CustomPackage = {
   id: string
   title: string
   price: string
-  description: string
+  benefits?: string[]
 }
 
 const CUSTOM_PACKAGES: CustomPackage[] = [
   {
-    id: 'career-report',
-    title: 'Career Report',
-    price: 'Rs. 1,500',
-    description:
-      'Get a detailed report of your psychometric assessment for a scientific analysis of your interests. Find out where your interests lie and which future paths you can potentially consider.'
+    id: 'soft-skill-training',
+    title: 'Soft Skill Training',
+    price: '₹1,999',
+    benefits: [
+      'AI-based Psychometric Career Assessment',
+      'Analysis of Interest, Abilities & Personality traits to select 10 Careers',
+      'One on one followed by meeting with parents for career clarity',
+      'Selection of Academic Courses, Colleges & Foreign Universities',
+      'Monitoring of progress every 6 months.',
+      'Webinars for Ai Awareness and Building a Life Plan',
+      'Preparation for Projects, Apprenticeship, Job Interview & Group Discussion Training',
+      'Training on use of Ai job Application Platform AARYA',
+      'Leadership & Growth Coaching / Change of Functional Area/ Certifications'
+    ]
   },
   {
-    id: 'career-report-counselling',
-    title: 'Career Report + Career Counselling',
-    price: 'Rs. 3,000',
-    description:
-      "Connect with India's top career coaches to analyse your psychometric report and shortlist the top three career paths you're most likely to enjoy and excel at."
+    id: 'job-interview-prep',
+    title: 'Job Interview Preparation',
+    price: '₹1,999',
+    benefits: [
+      'AI-based Psychometric Career Assessment',
+      'Analysis of Interest, Abilities & Personality traits to select 10 Careers',
+      'One on one followed by meeting with parents for career clarity',
+      'Selection of Academic Courses, Colleges & Foreign Universities',
+      'Monitoring of progress every 6 months.',
+      'Webinars for Ai Awareness and Building a Life Plan',
+      'Preparation for Projects, Apprenticeship, Job Interview & Group Discussion Training',
+      'Training on use of Ai job Application Platform AARYA',
+      'Leadership & Growth Coaching / Change of Functional Area/ Certifications'
+    ]
   },
   {
-    id: 'knowledge-gateway',
-    title: 'Knowledge Gateway + Career Helpline Access',
-    price: 'Rs. 100',
-    description:
-      "Unlock holistic information on your career paths and get direct access to Mentoria's experts, who will resolve your career-related queries through our dedicated Career Helpline. Validate your career decisions from now until you land a job you love."
+    id: 'group-discussion-training',
+    title: 'Group Discussion Training',
+    price: '₹1,999',
+    benefits: [
+      'Qualities measured - Team building, Reasoning, Enthusiasm, Assertiveness, Flexibility',
+      'Tricks-speak first-introduce the topic, grab opportunity without interrupting.',
+      'Agree with others and add examples or experiences. Disagree politely.',
+      'Present both sides of the issue - pacify if the discussion becomes aggressive.',
+      'Encourage quiet members to speak & Use examples and real experiences.',
+      'Typical conclusion: For the past 10-15 minutes, we have had a very interesting discussion. We have heard diverse views. The overall consensus appears to be _____. However, we must consider the points raised by others as well.'
+    ]
   },
   {
-    id: 'one-to-one-session',
-    title: 'One-to-One Session with a Career Expert',
-    price: 'Rs. 3,500',
-    description:
-      'Resolve your career queries and glimpse into your future world through a one-on-one session with an expert from your chosen field.'
-  },
-  {
-    id: 'college-admission-planning',
-    title: 'College Admission Planning',
-    price: 'Rs. 3,000',
-    description:
-      'Get unbiased recommendations and details on your future college options in India and abroad, organised in one resourceful planner.'
-  },
-  {
-    id: 'exam-stress-management',
-    title: 'Exam Stress Management',
-    price: 'Rs. 1,000',
-    description:
-      "Get expert guidance on tackling exam stress, planning your study schedule, revision tips and more from India's top educators. Increase your chances of acing exams with a calm and clear mind."
-  },
-  {
-    id: 'cap-100',
-    title: 'College Admissions Planner - 100 (CAP-100)',
-    price: 'Rs. 199',
-    description:
-      'Rs. 199 for a ranked list of the top 100 colleges in your course. Get an expert-curated list of colleges based on verified cut-offs. CAP-100 ranks the top 100 colleges into four tiers to help you plan smarter: Indian Ivy League, Target, Smart Backup, and Safe Bet colleges. You can then shortlist colleges based on where you stand.'
+    id: 'public-speaking-training',
+    title: 'Public Speaking Training',
+    price: '₹3,999',
+    benefits: [
+      'How to Overcome Fear of Public Speaking',
+      'How to Speak Fluently',
+      '35 Confidence Building Exercises',
+      'Mental Preparation before starting',
+      'Where to look and what to do with your arms',
+      "First in your 'Mother Tongue' & How to transition to English.",
+      'Starting & Ending a Speech',
+      "'Survival Kit' if you go Blank",
+      'Role Play & Practice',
+      "Dos & Don'ts"
+    ]
   }
 ]
 
 const RAZORPAY_PAYMENT_BUTTON_MAP: Record<string, string> = {
-  discover: 'pl_RwDuOx96VYrsyN',
-  'discover-plus': 'pl_RwDq8XpK76OhB3',
-  'achieve-online': 'pl_RwDxvLPQP7j4rG',
-  'achieve-plus': 'pl_RwDzfVkQYEdAIf',
-  'ascend-online': 'pl_RwE1evNHrHWJDW',
-  'ascend-plus': 'pl_RwE3WEILWB9WeJ'
+  'career-starter': 'pl_RwDuOx96VYrsyN',
+  'career-growth': 'pl_RwDxvLPQP7j4rG'
 }
 
 const RAZORPAY_PAYMENT_BUTTON_BY_AMOUNT: Record<number, string> = {
-  550000: 'pl_RwDuOx96VYrsyN',
-  1500000: 'pl_RwDq8XpK76OhB3',
+  499900: 'pl_RwDuOx96VYrsyN',
   599900: 'pl_RwDxvLPQP7j4rG',
-  1059900: 'pl_RwDzfVkQYEdAIf',
-  649900: 'pl_RwE1evNHrHWJDW'
+  199900: 'pl_RwDxvLPQP7j4rG',
+  399900: 'pl_RwDxvLPQP7j4rG'
 }
 
 const PLAN_BASE_AMOUNTS_PAISE: Record<string, number> = {
-  discover: 550000,
-  'discover-plus': 1500000,
-  'achieve-online': 599900,
-  'achieve-plus': 1059900,
-  'ascend-online': 649900,
-  'ascend-plus': 1059900
+  'career-starter': 499900,
+  'career-growth': 599900,
+  'soft-skill-training': 199900,
+  'job-interview-prep': 199900,
+  'group-discussion-training': 199900,
+  'public-speaking-training': 399900
 }
 
 const CURRENCY = 'INR'
@@ -254,12 +214,9 @@ const parseAmountInPaise = (price?: string) => {
 
 const getPlanId = (plan?: PackagePlan) => {
   const normalized = plan?.planName ? slugify(plan.planName) : ''
-  if (normalized.includes('discover-plus') || normalized.includes('discover plus')) return 'discover-plus'
-  if (normalized.includes('discover')) return 'discover'
-  if (normalized.includes('achieve-plus') || normalized.includes('achieve plus')) return 'achieve-plus'
-  if (normalized.includes('achieve')) return 'achieve-online'
-  if (normalized.includes('ascend-plus') || normalized.includes('ascend plus')) return 'ascend-plus'
-  if (normalized.includes('ascend')) return 'ascend-online'
+  if (normalized.includes('starter')) return 'career-starter'
+  if (normalized.includes('growth')) return 'career-growth'
+  if (normalized.includes('transformation')) return 'career-transformation'
   return normalized || plan?._id || 'custom-plan'
 }
 
@@ -317,8 +274,7 @@ export default function ServicesSection({ section, services, packages }: Service
     return !title.includes('mobile +91') && !description.includes('mobile +91')
   })
 
-  // Only render services from CMS in this section; package cards are intentionally disabled.
-  const sortedPackages = useMemo<PackagePlan[]>(() => [], [])
+  const sortedPackages = useMemo<PackagePlan[]>(() => STANDARD_PACKAGES_FALLBACK, [])
 
   const standardPlans = useMemo(() => sortedPackages, [sortedPackages])
 
@@ -673,7 +629,16 @@ export default function ServicesSection({ section, services, packages }: Service
                       </span>
                       <h5 className="text-xl font-bold text-slate-900">{customPack.title}</h5>
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-700">{customPack.description}</p>
+                    {customPack.benefits && customPack.benefits.length > 0 && (
+                      <ul className="space-y-2">
+                        {customPack.benefits.map((benefit, idx) => (
+                          <li key={`${customPack.id}-${idx}`} className="flex items-start gap-2 text-sm text-slate-700">
+                            <span className="mt-1 text-slate-500 text-xs">•</span>
+                            <span className="leading-relaxed">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="mt-4 md:mt-0 md:text-right">
                     <p className="text-2xl font-extrabold text-slate-900">{customPack.price}</p>

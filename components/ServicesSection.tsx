@@ -218,6 +218,14 @@ const RAZORPAY_PAYMENT_BUTTON_MAP: Record<string, string> = {
   'ascend-plus': 'pl_RwE3WEILWB9WeJ'
 }
 
+const RAZORPAY_PAYMENT_BUTTON_BY_AMOUNT: Record<number, string> = {
+  550000: 'pl_RwDuOx96VYrsyN',
+  1500000: 'pl_RwDq8XpK76OhB3',
+  599900: 'pl_RwDxvLPQP7j4rG',
+  1059900: 'pl_RwDzfVkQYEdAIf',
+  649900: 'pl_RwE1evNHrHWJDW'
+}
+
 const PLAN_BASE_AMOUNTS_PAISE: Record<string, number> = {
   discover: 550000,
   'discover-plus': 1500000,
@@ -341,12 +349,14 @@ export default function ServicesSection({ section, services, packages }: Service
     const planId = getPlanId(plan)
     const parsedAmount = parseAmountInPaise(plan.price)
     const amountInPaise = PLAN_BASE_AMOUNTS_PAISE[planId] || parsedAmount
+    const mappedPaymentButtonId =
+      RAZORPAY_PAYMENT_BUTTON_MAP[planId] || RAZORPAY_PAYMENT_BUTTON_BY_AMOUNT[amountInPaise]
     setSelectedPlan({
       planId,
       title: plan.planName || 'Mentoria Plan',
       displayPrice: plan.price || 'Rs. 0',
       amountInPaise,
-      paymentButtonId: RAZORPAY_PAYMENT_BUTTON_MAP[planId]
+      paymentButtonId: mappedPaymentButtonId
     })
     resetCheckoutState()
   }
@@ -511,9 +521,18 @@ export default function ServicesSection({ section, services, packages }: Service
         orderPayload?.amountInPaise || couponState?.finalAmountPaise || selectedPlan.amountInPaise
 
       const keyId = orderPayload?.keyId
+      const hasOrderId = Boolean(orderPayload?.orderId)
 
-      if (!keyId && !paymentButtonId) {
-        throw new Error('Payment key is missing. Please configure the Cloudflare worker endpoint.')
+      if (paymentButtonId && (!hasOrderId || !keyId)) {
+        openDirectPaymentPage()
+        setIsProcessingPayment(false)
+        return
+      }
+
+      if (!keyId) {
+        setCheckoutError('Unable to initialize payment. Please retry or use a standard plan checkout.')
+        setIsProcessingPayment(false)
+        return
       }
 
       const options: any = {
@@ -549,7 +568,7 @@ export default function ServicesSection({ section, services, packages }: Service
         }
       }
 
-      if (orderPayload?.orderId) {
+      if (hasOrderId) {
         options.order_id = orderPayload.orderId
       } else if (paymentButtonId) {
         openDirectPaymentPage()

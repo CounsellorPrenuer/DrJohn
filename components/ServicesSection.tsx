@@ -218,6 +218,15 @@ const RAZORPAY_PAYMENT_BUTTON_MAP: Record<string, string> = {
   'ascend-plus': 'pl_RwE3WEILWB9WeJ'
 }
 
+const PLAN_BASE_AMOUNTS_PAISE: Record<string, number> = {
+  discover: 550000,
+  'discover-plus': 1500000,
+  'achieve-online': 599900,
+  'achieve-plus': 1059900,
+  'ascend-online': 649900,
+  'ascend-plus': 1059900
+}
+
 const CURRENCY = 'INR'
 
 const slugify = (value: string) =>
@@ -330,11 +339,13 @@ export default function ServicesSection({ section, services, packages }: Service
 
   const openCheckoutForPlan = (plan: PackagePlan) => {
     const planId = getPlanId(plan)
+    const parsedAmount = parseAmountInPaise(plan.price)
+    const amountInPaise = PLAN_BASE_AMOUNTS_PAISE[planId] || parsedAmount
     setSelectedPlan({
       planId,
       title: plan.planName || 'Mentoria Plan',
       displayPrice: plan.price || 'Rs. 0',
-      amountInPaise: parseAmountInPaise(plan.price),
+      amountInPaise,
       paymentButtonId: RAZORPAY_PAYMENT_BUTTON_MAP[planId]
     })
     resetCheckoutState()
@@ -426,7 +437,20 @@ export default function ServicesSection({ section, services, packages }: Service
     const paymentButtonId = selectedPlan.paymentButtonId
     const openDirectPaymentPage = () => {
       if (!paymentButtonId) return false
-      window.open(`https://pages.razorpay.com/${paymentButtonId}/view`, '_blank', 'noopener,noreferrer')
+      const primary = `https://pages.razorpay.com/${paymentButtonId}/view`
+      const secondary = `https://rzp.io/i/${paymentButtonId}`
+      const popup = window.open(primary, '_blank', 'noopener,noreferrer')
+      if (!popup) {
+        window.location.href = secondary
+      } else {
+        try {
+          popup.addEventListener('error', () => {
+            window.open(secondary, '_blank', 'noopener,noreferrer')
+          })
+        } catch {
+          // no-op; primary link is already opened
+        }
+      }
       return true
     }
 

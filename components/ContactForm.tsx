@@ -28,6 +28,13 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
   const [submitting, setSubmitting] = useState(false)
   const workerBaseUrl = (process.env.NEXT_PUBLIC_CF_WORKER_URL || '').trim()
   const workerConfigured = workerBaseUrl.startsWith('https://')
+  const normalizeUserError = (message?: string) => {
+    if (!message) return 'Unable to submit your form right now. Please try again.'
+    if (message.includes('NEXT_PUBLIC_CF_WORKER_URL') || message.toLowerCase().includes('endpoint is not configured')) {
+      return 'Draft email opened. Please press Send to complete your inquiry.'
+    }
+    return message
+  }
 
   if (!contactInfo) return null
 
@@ -82,7 +89,20 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
         const payload = await response.json().catch(() => null)
 
         if (!response.ok) {
-          setErrors({ form: payload?.message || 'Unable to submit your form right now. Please try again.' })
+          const fallbackMailUrl = buildMailtoUrl({
+            subject: `Website Contact Lead - ${formData.name.trim()}`,
+            lines: [
+              'A new contact form lead was submitted.',
+              '',
+              `Name: ${formData.name.trim()}`,
+              `Email: ${formData.email.trim()}`,
+              'Phone: N/A',
+              'Purpose: N/A',
+              `Message: ${formData.message.trim()}`
+            ]
+          })
+          openMailto(fallbackMailUrl)
+          setErrors({ form: normalizeUserError(payload?.message) })
           return
         }
       }
@@ -105,7 +125,20 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
       setFormData({ name: '', email: '', message: '' })
       setTimeout(() => setSubmitted(false), 5000)
     } catch {
-      setErrors({ form: 'Network issue while submitting form. Please try again.' })
+      const fallbackMailUrl = buildMailtoUrl({
+        subject: `Website Contact Lead - ${formData.name.trim()}`,
+        lines: [
+          'A new contact form lead was submitted.',
+          '',
+          `Name: ${formData.name.trim()}`,
+          `Email: ${formData.email.trim()}`,
+          'Phone: N/A',
+          'Purpose: N/A',
+          `Message: ${formData.message.trim()}`
+        ]
+      })
+      openMailto(fallbackMailUrl)
+      setErrors({ form: 'Draft email opened. Please press Send to complete your inquiry.' })
     } finally {
       setSubmitting(false)
     }

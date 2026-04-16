@@ -1,0 +1,18 @@
+name = "mentoria-payments-gateway"
+main = "src/index.ts"
+compatibility_date = "2026-04-16"
+
+[vars]
+CORS_ORIGIN = "https://oversimplify.in"
+SANITY_PROJECT_ID = "6w0t9e7l"
+SANITY_DATASET = "production"
+
+[[d1_databases]]
+binding = "LEADS_DB"
+database_name = "mentoria-leads"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Add these as secrets using `wrangler secret put`:
+# RAZORPAY_KEY_ID
+# RAZORPAY_KEY_SECRET
+# RAZORPAY_WEBHOOK_SECRET

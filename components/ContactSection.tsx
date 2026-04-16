@@ -43,6 +43,10 @@ export default function ContactSection({ section }: ContactSectionProps) {
     message: ''
   })
   const [errors, setErrors] = useState<{ [key: string]: boolean }>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const workerBaseUrl = (process.env.NEXT_PUBLIC_CF_WORKER_URL || '').trim()
+  const workerConfigured = workerBaseUrl.startsWith('https://')
 
   const fallbackSection = {
     sectionTitle: 'Contact Us',
@@ -90,8 +94,9 @@ export default function ContactSection({ section }: ContactSectionProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitStatus(null)
 
     const nextErrors: { [key: string]: boolean } = {
       name: !formData.name.trim(),
@@ -103,8 +108,51 @@ export default function ContactSection({ section }: ContactSectionProps) {
 
     if (Object.values(nextErrors).some(Boolean)) return
 
-    console.log('Contact form submission', formData)
-    setFormData({ name: '', email: '', phone: '', purpose: '', message: '' })
+    if (!workerConfigured) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Contact endpoint is not configured yet. Please set NEXT_PUBLIC_CF_WORKER_URL.'
+      })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const response = await fetch(`${workerBaseUrl}/lead/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          purpose: formData.purpose.trim(),
+          message: formData.message.trim(),
+          source: 'website-contact-form'
+        })
+      })
+
+      const payload = await response.json().catch(() => null)
+      if (!response.ok) {
+        setSubmitStatus({
+          type: 'error',
+          message: payload?.message || 'Unable to submit your form right now. Please try again.'
+        })
+        return
+      }
+
+      setSubmitStatus({
+        type: 'success',
+        message: payload?.message || 'Thank you. We have received your details and will contact you shortly.'
+      })
+      setFormData({ name: '', email: '', phone: '', purpose: '', message: '' })
+    } catch {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Network issue while submitting form. Please try again in a moment.'
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -249,11 +297,18 @@ export default function ContactSection({ section }: ContactSectionProps) {
 
               <button
                 type="submit"
+                disabled={submitting}
                 className="w-full rounded-lg py-3 text-base font-semibold shadow-sm"
                 style={{ backgroundColor: buttonBg, color: buttonText }}
               >
-                {data.submitButtonText || ''}
+                {submitting ? 'Submitting...' : data.submitButtonText || 'Submit'}
               </button>
+
+              {submitStatus && (
+                <p className={`text-sm ${submitStatus.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {submitStatus.message}
+                </p>
+              )}
             </form>
           </div>
 

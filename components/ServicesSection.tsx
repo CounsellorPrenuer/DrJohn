@@ -421,6 +421,13 @@ export default function ServicesSection({ section, services, packages }: Service
   const startPayment = async () => {
     if (!selectedPlan) return
     setCheckoutError('')
+    const paymentButtonId = selectedPlan.paymentButtonId
+    const openDirectPaymentPage = () => {
+      if (!paymentButtonId) return false
+      window.open(`https://pages.razorpay.com/${paymentButtonId}`, '_blank', 'noopener,noreferrer')
+      return true
+    }
+
     const validationError = validateBuyer()
     if (validationError) {
       setCheckoutError(validationError)
@@ -431,6 +438,7 @@ export default function ServicesSection({ section, services, packages }: Service
       return
     }
     if (!workerConfigured) {
+      if (openDirectPaymentPage()) return
       setCheckoutError('Payment service is not configured. Set NEXT_PUBLIC_CF_WORKER_URL.')
       return
     }
@@ -475,7 +483,6 @@ export default function ServicesSection({ section, services, packages }: Service
 
       const finalAmountPaise =
         orderPayload?.amountInPaise || couponState?.finalAmountPaise || selectedPlan.amountInPaise
-      const paymentButtonId = selectedPlan.paymentButtonId
 
       const keyId = orderPayload?.keyId
 
@@ -519,7 +526,7 @@ export default function ServicesSection({ section, services, packages }: Service
       if (orderPayload?.orderId) {
         options.order_id = orderPayload.orderId
       } else if (paymentButtonId) {
-        window.open(`https://pages.razorpay.com/${paymentButtonId}`, '_blank', 'noopener,noreferrer')
+        openDirectPaymentPage()
         setIsProcessingPayment(false)
         return
       }
@@ -530,6 +537,7 @@ export default function ServicesSection({ section, services, packages }: Service
       })
       paymentObject.open()
     } catch (error: any) {
+      if (openDirectPaymentPage()) return
       setCheckoutError(error?.message || 'Unable to start payment. Please try again.')
     } finally {
       setIsProcessingPayment(false)

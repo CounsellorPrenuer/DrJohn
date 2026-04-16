@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { urlFor } from '@/lib/sanity'
+import { buildMailtoUrl, openMailto } from '@/lib/mail'
 
 interface Service {
   _id: string
@@ -23,6 +24,113 @@ interface PackagePlan {
   ctaText?: string
   ctaLink?: string
 }
+
+const STANDARD_PACKAGES_FALLBACK: PackagePlan[] = [
+  {
+    _id: 'pkg-1',
+    order: 1,
+    category: '8-9 Students',
+    planName: 'Discover',
+    price: 'Rs. 5,500',
+    benefits: [
+      'Psychometric assessment',
+      '1 career counselling session',
+      'Lifetime Knowledge Gateway access',
+      'Live webinar invites'
+    ]
+  },
+  {
+    _id: 'pkg-2',
+    order: 2,
+    category: '8-9 Students',
+    planName: 'Discover Plus+',
+    price: 'Rs. 15,000',
+    benefits: [
+      'Psychometric assessments',
+      '8 career counselling sessions (1/year)',
+      'Custom reports and study abroad guidance',
+      'CV building'
+    ]
+  },
+  {
+    _id: 'pkg-3',
+    order: 3,
+    category: '10-12 Students',
+    planName: 'Achieve Online',
+    price: 'Rs. 5,999',
+    benefits: [
+      'Psychometric assessment',
+      '1 career counselling session',
+      'Lifetime Knowledge Gateway access',
+      'Pre-recorded webinars'
+    ]
+  },
+  {
+    _id: 'pkg-4',
+    order: 4,
+    category: '10-12 Students',
+    planName: 'Achieve Plus+',
+    price: 'Rs. 10,599',
+    benefits: [
+      'Psychometric assessment',
+      '4 career counselling sessions',
+      'Custom reports and study abroad guidance',
+      'CV reviews'
+    ]
+  },
+  {
+    _id: 'pkg-5',
+    order: 5,
+    category: 'Graduates',
+    planName: 'Ascend Online',
+    price: 'Rs. 6,499',
+    benefits: [
+      'Psychometric assessment',
+      '1 career counselling session',
+      'Lifetime Knowledge Gateway access',
+      'Pre-recorded webinars'
+    ]
+  },
+  {
+    _id: 'pkg-6',
+    order: 6,
+    category: 'Graduates',
+    planName: 'Ascend Plus+',
+    price: 'Rs. 10,599',
+    benefits: [
+      'Psychometric assessment',
+      '3 career counselling sessions',
+      'Certificate/online course info',
+      'CV reviews for jobs'
+    ]
+  },
+  {
+    _id: 'mp-3',
+    order: 7,
+    category: 'Working Professionals',
+    planName: 'Ascend Online',
+    price: 'Rs. 6,499',
+    benefits: [
+      'Psychometric assessment',
+      '1 career counselling session',
+      'Lifetime Knowledge Gateway access',
+      'Pre-recorded webinars'
+    ]
+  },
+  {
+    _id: 'mp-2',
+    order: 8,
+    category: 'Working Professionals',
+    planName: 'Ascend Plus+',
+    price: 'Rs. 10,599',
+    benefits: [
+      'Psychometric assessment',
+      '3 career counselling sessions',
+      'Certificate/online course info',
+      'CV reviews for jobs'
+    ]
+  }
+]
 
 interface ServicesSectionProps {
   section?: {
@@ -53,55 +161,60 @@ const CUSTOM_PACKAGES: CustomPackage[] = [
   {
     id: 'career-report',
     title: 'Career Report',
-    price: '₹1,500',
+    price: 'Rs. 1,500',
     description:
       'Get a detailed report of your psychometric assessment for a scientific analysis of your interests. Find out where your interests lie and which future paths you can potentially consider.'
   },
   {
     id: 'career-report-counselling',
     title: 'Career Report + Career Counselling',
-    price: '₹3,000',
+    price: 'Rs. 3,000',
     description:
-      "Connect with India's top career counsellors to review your report and build an actionable career direction roadmap."
+      "Connect with India's top career coaches to analyse your psychometric report and shortlist the top three career paths you're most likely to enjoy and excel at."
   },
   {
-    id: 'interview-prep',
-    title: 'Interview Preparation Pack',
-    price: '₹1,999',
-    description: 'Focused support for interview readiness, confidence building, and hiring process preparation.'
+    id: 'knowledge-gateway',
+    title: 'Knowledge Gateway + Career Helpline Access',
+    price: 'Rs. 100',
+    description:
+      "Unlock holistic information on your career paths and get direct access to Mentoria's experts, who will resolve your career-related queries through our dedicated Career Helpline. Validate your career decisions from now until you land a job you love."
   },
   {
-    id: 'group-discussion-pack',
-    title: 'Group Discussion Mastery',
-    price: '₹1,999',
-    description: 'Structured support to improve group discussion strategy, communication, and topic handling.'
+    id: 'one-to-one-session',
+    title: 'One-to-One Session with a Career Expert',
+    price: 'Rs. 3,500',
+    description:
+      'Resolve your career queries and glimpse into your future world through a one-on-one session with an expert from your chosen field.'
   },
   {
-    id: 'soft-skills-pack',
-    title: 'Soft Skills Intensive',
-    price: '₹1,999',
-    description: 'Improve communication, clarity, confidence, and professional behavior through guided practice.'
+    id: 'college-admission-planning',
+    title: 'College Admission Planning',
+    price: 'Rs. 3,000',
+    description:
+      'Get unbiased recommendations and details on your future college options in India and abroad, organised in one resourceful planner.'
   },
   {
-    id: 'life-plan',
-    title: 'Life Plan Blueprint',
-    price: '₹2,999',
-    description: 'Create a personalized life plan aligned with your strengths, interests, and long-term career path.'
+    id: 'exam-stress-management',
+    title: 'Exam Stress Management',
+    price: 'Rs. 1,000',
+    description:
+      "Get expert guidance on tackling exam stress, planning your study schedule, revision tips and more from India's top educators. Increase your chances of acing exams with a calm and clear mind."
   },
   {
-    id: 'mentorship-extension',
-    title: 'Mentorship Extension',
-    price: '₹4,999',
-    description: 'Continue mentor-led guidance with periodic reviews, progress tracking, and plan refinements.'
+    id: 'cap-100',
+    title: 'College Admissions Planner - 100 (CAP-100)',
+    price: 'Rs. 199',
+    description:
+      'Rs. 199 for a ranked list of the top 100 colleges in your course. Get an expert-curated list of colleges based on verified cut-offs. CAP-100 ranks the top 100 colleges into four tiers to help you plan smarter: Indian Ivy League, Target, Smart Backup, and Safe Bet colleges. You can then shortlist colleges based on where you stand.'
   }
 ]
 
 const RAZORPAY_PAYMENT_BUTTON_MAP: Record<string, string> = {
   discover: 'pl_RwDuOx96VYrsyN',
   'discover-plus': 'pl_RwDq8XpK76OhB3',
-  achieve: 'pl_RwDxvLPQP7j4rG',
+  'achieve-online': 'pl_RwDxvLPQP7j4rG',
   'achieve-plus': 'pl_RwDzfVkQYEdAIf',
-  ascend: 'pl_RwE1evNHrHWJDW',
+  'ascend-online': 'pl_RwE1evNHrHWJDW',
   'ascend-plus': 'pl_RwE3WEILWB9WeJ'
 }
 
@@ -125,9 +238,9 @@ const getPlanId = (plan?: PackagePlan) => {
   if (normalized.includes('discover-plus') || normalized.includes('discover plus')) return 'discover-plus'
   if (normalized.includes('discover')) return 'discover'
   if (normalized.includes('achieve-plus') || normalized.includes('achieve plus')) return 'achieve-plus'
-  if (normalized.includes('achieve')) return 'achieve'
+  if (normalized.includes('achieve')) return 'achieve-online'
   if (normalized.includes('ascend-plus') || normalized.includes('ascend plus')) return 'ascend-plus'
-  if (normalized.includes('ascend')) return 'ascend'
+  if (normalized.includes('ascend')) return 'ascend-online'
   return normalized || plan?._id || 'custom-plan'
 }
 
@@ -185,12 +298,23 @@ export default function ServicesSection({ section, services, packages }: Service
     return !title.includes('mobile +91') && !description.includes('mobile +91')
   })
 
-  const sortedPackages = useMemo(
-    () => [...(packages || [])].sort((a, b) => (a.order ?? 999) - (b.order ?? 999)),
-    [packages]
-  )
+  const sortedPackages = useMemo(() => {
+    const sanitized = [...(packages || [])]
+      .map((plan) => ({
+        ...plan,
+        planName: plan.planName?.trim(),
+        category: plan.category?.trim(),
+        price: plan.price?.trim(),
+        ctaText: plan.ctaText?.trim() || 'BUY NOW'
+      }))
+      .filter((plan) => Boolean(plan.planName) && Boolean(plan.price))
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
 
-  const standardPlans = useMemo(() => sortedPackages.slice(0, 3), [sortedPackages])
+    const hasRequestedPlans = sanitized.some((plan) => plan.planName?.toLowerCase().includes('discover'))
+    return hasRequestedPlans ? sanitized : STANDARD_PACKAGES_FALLBACK
+  }, [packages])
+
+  const standardPlans = useMemo(() => sortedPackages, [sortedPackages])
 
   const resetCheckoutState = () => {
     setCouponCode('')
@@ -207,7 +331,7 @@ export default function ServicesSection({ section, services, packages }: Service
     setSelectedPlan({
       planId,
       title: plan.planName || 'Mentoria Plan',
-      displayPrice: plan.price || '₹0',
+      displayPrice: plan.price || 'Rs. 0',
       amountInPaise: parseAmountInPaise(plan.price),
       paymentButtonId: RAZORPAY_PAYMENT_BUTTON_MAP[planId]
     })
@@ -306,27 +430,47 @@ export default function ServicesSection({ section, services, packages }: Service
       setCheckoutError('Payment gateway not ready yet. Please wait a moment and retry.')
       return
     }
+    if (!workerConfigured) {
+      setCheckoutError('Payment service is not configured. Set NEXT_PUBLIC_CF_WORKER_URL.')
+      return
+    }
 
     setIsProcessingPayment(true)
 
     try {
-      let orderPayload: any = null
-      if (workerConfigured) {
-        const orderResponse = await fetch(`${workerBaseUrl}/checkout/order`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            planId: selectedPlan.planId,
-            planTitle: selectedPlan.title,
-            amountInPaise: selectedPlan.amountInPaise,
-            couponCode: couponState?.valid ? couponState.code : undefined,
-            customer: buyer
-          })
+      const paymentMailUrl = buildMailtoUrl({
+        subject: `Payment Lead - ${selectedPlan.title}`,
+        lines: [
+          'A new payment intent was created from the website.',
+          '',
+          `Plan: ${selectedPlan.title}`,
+          `Plan ID: ${selectedPlan.planId}`,
+          `Customer Name: ${buyer.name.trim()}`,
+          `Customer Email: ${buyer.email.trim()}`,
+          `Customer Phone: ${buyer.phone.trim()}`,
+          `Coupon Code: ${couponState?.valid ? couponState.code : 'N/A'}`,
+          `Displayed Price: ${selectedPlan.displayPrice}`,
+          `Final Amount: Rs. ${(
+            (couponState?.finalAmountPaise || selectedPlan.amountInPaise) / 100
+          ).toLocaleString('en-IN')}`
+        ]
+      })
+      openMailto(paymentMailUrl)
+
+      const orderResponse = await fetch(`${workerBaseUrl}/checkout/order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: selectedPlan.planId,
+          planTitle: selectedPlan.title,
+          amountInPaise: selectedPlan.amountInPaise,
+          couponCode: couponState?.valid ? couponState.code : undefined,
+          customer: buyer
         })
-        orderPayload = await orderResponse.json()
-        if (!orderResponse.ok) {
-          throw new Error(orderPayload?.message || 'Unable to initialize payment.')
-        }
+      })
+      const orderPayload = await orderResponse.json()
+      if (!orderResponse.ok) {
+        throw new Error(orderPayload?.message || 'Unable to initialize payment.')
       }
 
       const finalAmountPaise =
@@ -356,20 +500,18 @@ export default function ServicesSection({ section, services, packages }: Service
           couponCode: couponState?.valid ? couponState.code : ''
         },
         handler: async (response: any) => {
-          if (workerConfigured) {
-            await fetch(`${workerBaseUrl}/checkout/verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                ...response,
-                planId: selectedPlan.planId,
-                planTitle: selectedPlan.title,
-                customer: buyer,
-                amountInPaise: finalAmountPaise,
-                couponCode: couponState?.valid ? couponState.code : ''
-              })
-            }).catch(() => null)
-          }
+          await fetch(`${workerBaseUrl}/checkout/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...response,
+              planId: selectedPlan.planId,
+              planTitle: selectedPlan.title,
+              customer: buyer,
+              amountInPaise: finalAmountPaise,
+              couponCode: couponState?.valid ? couponState.code : ''
+            })
+          }).catch(() => null)
           closeCheckoutModal()
         }
       }
@@ -420,7 +562,7 @@ export default function ServicesSection({ section, services, packages }: Service
           </h3>
 
           <div className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h4 className="mb-5 text-xl font-semibold text-slate-900">Standard Plans</h4>
+            <h4 className="mb-5 text-xl font-semibold text-slate-900">Standard Mentoria Packages</h4>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {standardPlans.map((plan) => (
                 <article
@@ -508,63 +650,6 @@ export default function ServicesSection({ section, services, packages }: Service
             </div>
           </div>
 
-          {sortedPackages.length > 3 && (
-            <div className="mt-14">
-              <h3 className="mb-6 text-3xl font-bold" style={{ color: headingColor }}>
-                More Plans
-              </h3>
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                {sortedPackages.slice(3).map((plan) => (
-                  <article
-                    key={plan._id}
-                    className="flex h-full flex-col rounded-3xl border border-gray-200 bg-gray-100 p-8 shadow-sm"
-                  >
-                    <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-600">
-                      {plan.category || 'TRAINING PROGRAM'}
-                    </p>
-
-                    {plan.planName && <h4 className="mb-2 text-4xl font-bold text-slate-900">{plan.planName}</h4>}
-                    {plan.price && (
-                      <p className="mb-5 text-5xl font-extrabold leading-none text-slate-900">{plan.price}</p>
-                    )}
-
-                    {plan.shortDescription && (
-                      <p className="mb-5 text-lg leading-relaxed" style={{ color: textColor }}>
-                        {plan.shortDescription}
-                      </p>
-                    )}
-
-                    {plan.benefits && plan.benefits.length > 0 && (
-                      <ul className="mb-8 space-y-4">
-                        {plan.benefits.map((point, idx) => (
-                          <li key={`${plan._id}-benefit-${idx}`} className="flex items-start gap-3">
-                            <span
-                              className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                              style={{ backgroundColor: '#d1fae5', color: '#047857' }}
-                            >
-                              &#10003;
-                            </span>
-                            <span className="text-lg leading-relaxed" style={{ color: textColor }}>
-                              {point}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => openCheckoutForPlan(plan)}
-                      className="mt-auto inline-block w-full rounded-xl bg-slate-900 px-5 py-3 text-center text-lg font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
-                    >
-                      {plan.ctaText || 'BUY NOW'}
-                    </button>
-                  </article>
-                ))}
-              </div>
-            </div>
-          )}
-
           {filteredServices.length > 0 && (
             <div className="mt-14">
               <h3 className="mb-6 text-3xl font-bold" style={{ color: headingColor }}>
@@ -617,7 +702,7 @@ export default function ServicesSection({ section, services, packages }: Service
                 <div>
                   <h4 className="text-2xl font-bold text-slate-900">Complete Your Purchase</h4>
                   <p className="text-sm text-slate-600">
-                    {selectedPlan.title} • {selectedPlan.displayPrice}
+                    {selectedPlan.title} | {selectedPlan.displayPrice}
                   </p>
                 </div>
                 <button
@@ -625,7 +710,7 @@ export default function ServicesSection({ section, services, packages }: Service
                   onClick={closeCheckoutModal}
                   className="rounded px-2 py-1 text-lg font-bold text-slate-600 hover:bg-slate-100"
                 >
-                  ×
+                  x
                 </button>
               </div>
 
@@ -678,15 +763,15 @@ export default function ServicesSection({ section, services, packages }: Service
 
                 {selectedPlan.amountInPaise > 0 && (
                   <div className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700">
-                    <p>Base Amount: ₹{(selectedPlan.amountInPaise / 100).toLocaleString('en-IN')}</p>
+                    <p>Base Amount: Rs. {(selectedPlan.amountInPaise / 100).toLocaleString('en-IN')}</p>
                     {couponState?.valid ? (
                       <>
                         <p>
-                          Coupon ({couponState.code}): -₹
+                          Coupon ({couponState.code}): -Rs. 
                           {((couponState.discountAmountPaise || 0) / 100).toLocaleString('en-IN')}
                         </p>
                         <p className="font-semibold text-slate-900">
-                          Final Amount: ₹
+                          Final Amount: Rs. 
                           {((couponState.finalAmountPaise || selectedPlan.amountInPaise) / 100).toLocaleString(
                             'en-IN'
                           )}

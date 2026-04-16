@@ -1,4 +1,4 @@
-name = "mentoria-payments-gateway"
+name = "careerplans-mentoria-payments"
 main = "src/index.ts"
 compatibility_date = "2026-04-16"
 

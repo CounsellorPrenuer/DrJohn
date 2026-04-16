@@ -31,10 +31,12 @@ const COUPONS: CouponDefinition[] = [
 const PLAN_AMOUNTS: Record<string, number> = {
   discover: 550000,
   'discover-plus': 1500000,
+  'achieve-online': 599900,
   achieve: 599900,
   'achieve-plus': 1059900,
-  ascend: 199900,
-  'ascend-plus': 199900
+  'ascend-online': 649900,
+  ascend: 649900,
+  'ascend-plus': 1059900
 }
 
 const json = (body: unknown, status = 200) =>

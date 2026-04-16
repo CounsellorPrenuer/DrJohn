@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { buildMailtoUrl, openMailto } from '@/lib/mail'
 
 type ContactInfoProps = {
   contactInfo?: {
@@ -24,6 +25,9 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [submitting, setSubmitting] = useState(false)
+  const workerBaseUrl = (process.env.NEXT_PUBLIC_CF_WORKER_URL || '').trim()
+  const workerConfigured = workerBaseUrl.startsWith('https://')
 
   if (!contactInfo) return null
 
@@ -49,7 +53,7 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
     return newErrors
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors = validateForm()
     
@@ -58,11 +62,56 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
       return
     }
 
-    setSubmitted(true)
-    setFormData({ name: '', email: '', message: '' })
+    if (!workerConfigured) {
+      setErrors({ form: 'Contact endpoint is not configured. Set NEXT_PUBLIC_CF_WORKER_URL.' })
+      return
+    }
+
+    setSubmitting(true)
     setErrors({})
-    
-    setTimeout(() => setSubmitted(false), 5000)
+
+    try {
+      const response = await fetch(`${workerBaseUrl}/lead/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: '',
+          purpose: '',
+          message: formData.message.trim(),
+          source: 'website-contact-form-basic'
+        })
+      })
+      const payload = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setErrors({ form: payload?.message || 'Unable to submit your form right now. Please try again.' })
+        return
+      }
+
+      const mailUrl = buildMailtoUrl({
+        subject: `Website Contact Lead - ${formData.name.trim()}`,
+        lines: [
+          'A new contact form lead was submitted.',
+          '',
+          `Name: ${formData.name.trim()}`,
+          `Email: ${formData.email.trim()}`,
+          'Phone: N/A',
+          'Purpose: N/A',
+          `Message: ${formData.message.trim()}`
+        ]
+      })
+      openMailto(mailUrl)
+
+      setSubmitted(true)
+      setFormData({ name: '', email: '', message: '' })
+      setTimeout(() => setSubmitted(false), 5000)
+    } catch {
+      setErrors({ form: 'Network issue while submitting form. Please try again.' })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -237,14 +286,17 @@ export default function ContactForm({ contactInfo }: ContactInfoProps) {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-3 rounded-lg font-semibold text-base transition-opacity hover:opacity-90"
+                disabled={submitting}
+                className="w-full py-3 rounded-lg font-semibold text-base transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 style={{
                   backgroundColor: headingColor,
                   color: bgColor
                 }}
               >
-                {contactInfo.submitButtonText || 'Send Message'}
+                {submitting ? 'Submitting...' : contactInfo.submitButtonText || 'Send Message'}
               </button>
+
+              {errors.form && <p className="text-red-600 text-sm">{errors.form}</p>}
             </form>
           </div>
         )}

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import { urlFor } from '@/lib/sanity'
+import { buildMailtoUrl, openMailto } from '@/lib/mail'
 
 type ContactSectionProps = {
   section?: {
@@ -144,6 +145,21 @@ export default function ContactSection({ section }: ContactSectionProps) {
         type: 'success',
         message: payload?.message || 'Thank you. We have received your details and will contact you shortly.'
       })
+
+      const mailUrl = buildMailtoUrl({
+        subject: `Website Contact Lead - ${formData.name.trim()}`,
+        lines: [
+          'A new contact form lead was submitted.',
+          '',
+          `Name: ${formData.name.trim()}`,
+          `Email: ${formData.email.trim()}`,
+          `Phone: ${formData.phone.trim() || 'N/A'}`,
+          `Purpose: ${formData.purpose.trim() || 'N/A'}`,
+          `Message: ${formData.message.trim()}`
+        ]
+      })
+      openMailto(mailUrl)
+
       setFormData({ name: '', email: '', phone: '', purpose: '', message: '' })
     } catch {
       setSubmitStatus({

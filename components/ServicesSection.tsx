@@ -228,7 +228,9 @@ const slugify = (value: string) =>
 
 const parseAmountInPaise = (price?: string) => {
   if (!price) return 0
-  const numeric = Number(price.replace(/[^\d.]/g, ''))
+  const normalized = price.replace(/,/g, '')
+  const matched = normalized.match(/\d+(\.\d+)?/)
+  const numeric = Number(matched?.[0] || 0)
   if (!Number.isFinite(numeric)) return 0
   return Math.round(numeric * 100)
 }
@@ -424,7 +426,7 @@ export default function ServicesSection({ section, services, packages }: Service
     const paymentButtonId = selectedPlan.paymentButtonId
     const openDirectPaymentPage = () => {
       if (!paymentButtonId) return false
-      window.open(`https://pages.razorpay.com/${paymentButtonId}`, '_blank', 'noopener,noreferrer')
+      window.open(`https://pages.razorpay.com/${paymentButtonId}/view`, '_blank', 'noopener,noreferrer')
       return true
     }
 

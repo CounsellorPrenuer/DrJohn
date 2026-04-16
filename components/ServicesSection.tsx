@@ -317,21 +317,8 @@ export default function ServicesSection({ section, services, packages }: Service
     return !title.includes('mobile +91') && !description.includes('mobile +91')
   })
 
-  const sortedPackages = useMemo(() => {
-    const sanitized = [...(packages || [])]
-      .map((plan) => ({
-        ...plan,
-        planName: plan.planName?.trim(),
-        category: plan.category?.trim(),
-        price: plan.price?.trim(),
-        ctaText: plan.ctaText?.trim() || 'BUY NOW'
-      }))
-      .filter((plan) => Boolean(plan.planName) && Boolean(plan.price))
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-
-    const hasRequestedPlans = sanitized.some((plan) => plan.planName?.toLowerCase().includes('discover'))
-    return hasRequestedPlans ? sanitized : STANDARD_PACKAGES_FALLBACK
-  }, [packages])
+  // Only render services from CMS in this section; package cards are intentionally disabled.
+  const sortedPackages = useMemo<PackagePlan[]>(() => [], [])
 
   const standardPlans = useMemo(() => sortedPackages, [sortedPackages])
 

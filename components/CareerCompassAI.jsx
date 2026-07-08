@@ -1,849 +1,1001 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
-// ─── CAREER DATABASE ─────────────────────────────────────────────────────────
-const CAREERS = [
-  { id:"occupational_therapist", title:"Occupational Therapist", sector:"Healthcare", description:"Helps people recover, develop, or maintain daily living and work skills after injury, illness, or disability.", riasec:{R:30,I:55,A:35,S:90,E:30,C:40}, ocean:{O:65,C:75,E:60,A:85,N:30}, cognitive:65, eq:90, grit:75, integrity:85, adaptability:75, values:["helping_others","stability","autonomy"], aiResilience:88, resilienceReason:"Requires hands-on physical assessment, empathy-driven care plans, and adaptive human judgment in unpredictable settings.", training:["Licensed OT degree & clinical certification","Supervised fieldwork hours (1,000+)","Empathetic communication & motivational interviewing","Assistive technology & adaptive equipment training"], examPrep:["Biology, Anatomy & Physiology (prerequisite sciences)","Medical terminology & clinical reasoning MCQs","OT licensure exam (NBCOT in USA / country-specific board exams)","Practical OSCE: patient assessment scenarios"] },
-  { id:"electrician", title:"Electrician", sector:"Skilled Trades", description:"Installs, maintains, and repairs electrical systems in homes, businesses, and infrastructure.", riasec:{R:90,I:45,A:15,S:25,E:35,C:55}, ocean:{O:40,C:75,E:40,A:55,N:35}, cognitive:60, eq:40, grit:70, integrity:80, adaptability:65, values:["stability","autonomy","tangible_results"], aiResilience:92, resilienceReason:"Physical, situational work in varied real-world environments with safety-critical judgment — extremely difficult to automate at scale.", training:["Trade apprenticeship (3–5 years)","National licensing exam preparation","Electrical code & safety compliance (NEC/IEC)","Smart home & renewable energy specialization"], examPrep:["Electrical theory: Ohm's law, circuit analysis, AC/DC","National Electrical Code (NEC) / regional equivalent","Safety standards: OSHA / local occupational health regulations","Licensing exam: Journeyman then Master Electrician"] },
-  { id:"registered_nurse", title:"Registered Nurse", sector:"Healthcare", description:"Provides direct patient care, coordinates treatment plans, and supports patients and families through medical care.", riasec:{R:35,I:55,A:20,S:90,E:40,C:50}, ocean:{O:55,C:80,E:55,A:85,N:30}, cognitive:70, eq:90, grit:85, integrity:90, adaptability:80, values:["helping_others","stability","service"], aiResilience:90, resilienceReason:"Direct patient contact, emotional support, hands-on procedures, and split-second judgment in dynamic clinical settings.", training:["Nursing degree/diploma & NCLEX licensing","Clinical rotations across specializations","Specialized certifications (ICU, pediatrics, etc.)","Continuing education & recertification credits"], examPrep:["NCLEX-RN (USA) / NMC CBT (UK) / country licensing exam","Pharmacology, pathophysiology, medical-surgical nursing","Patient safety, ethics & legal aspects of nursing","Clinical simulation & OSCE preparation"] },
-  { id:"data_scientist", title:"Data Scientist", sector:"Technology", description:"Extracts insights from data using statistics, machine learning, and domain expertise to inform business decisions.", riasec:{R:25,I:90,A:30,S:35,E:45,C:60}, ocean:{O:80,C:75,E:40,A:50,N:35}, cognitive:90, eq:50, grit:70, integrity:70, adaptability:75, values:["intellectual_growth","impact","innovation"], aiResilience:45, resilienceReason:"Routine modeling is increasingly automated; resilience depends on strategic framing, stakeholder communication, and AI oversight roles.", training:["Statistics, ML foundations & Python/R proficiency","SQL and big data platform skills","Business domain expertise & data storytelling","AI ethics, model governance & explainability"], examPrep:["AWS/GCP/Azure Data certifications","Google Data Analytics / IBM Data Science certificate","Mathematics: Linear algebra, probability & statistics","Python programming: NumPy, Pandas, Scikit-learn"] },
-  { id:"psychologist", title:"Clinical Psychologist / Counselor", sector:"Healthcare", description:"Assesses and treats mental health conditions through therapy, counseling, and psychological assessment.", riasec:{R:10,I:70,A:40,S:95,E:25,C:35}, ocean:{O:70,C:70,E:50,A:90,N:35}, cognitive:75, eq:95, grit:75, integrity:90, adaptability:75, values:["helping_others","intellectual_growth","service"], aiResilience:90, resilienceReason:"Trust-based therapeutic relationships, ethical judgment, and deeply contextual human understanding cannot be substituted by AI.", training:["Graduate degree (Masters/PhD) & clinical licensure","3,000+ supervised clinical hours","Specialized therapy modalities (CBT, EMDR, DBT)","Ongoing supervision, ethics training & CPD"], examPrep:["EPPP (USA) / BPS Qualification (UK) / country board exam","Abnormal psychology, DSM-5 diagnostic criteria","Research methods, psychometrics & assessment tools","Ethics, multicultural counseling & professional standards"] },
-  { id:"chef", title:"Chef / Culinary Professional", sector:"Hospitality", description:"Creates and prepares food, manages kitchen operations, and develops menus that delight guests.", riasec:{R:70,I:30,A:75,S:40,E:50,C:35}, ocean:{O:75,C:65,E:55,A:50,N:40}, cognitive:50, eq:55, grit:80, integrity:65, adaptability:80, values:["creativity","autonomy","tangible_results"], aiResilience:85, resilienceReason:"Sensory judgment, creative experimentation, and kitchen management resist automation deeply.", training:["Culinary school or structured apprenticeship","Food safety & HACCP certification","Menu development, costing & food science","Specialization: pastry, sommelier, specific cuisines"], examPrep:["ServSafe / HACCP food safety certification exam","Culinary Institute entrance: portfolio + practical test","Sommelier exams (WSET / Court of Master Sommeliers)","Kitchen management & cost control fundamentals"] },
-  { id:"physiotherapist", title:"Physiotherapist", sector:"Healthcare", description:"Helps patients improve movement and manage pain through physical rehabilitation and exercise.", riasec:{R:50,I:55,A:20,S:85,E:30,C:40}, ocean:{O:55,C:75,E:55,A:80,N:30}, cognitive:65, eq:85, grit:75, integrity:85, adaptability:70, values:["helping_others","stability","service"], aiResilience:90, resilienceReason:"Hands-on manual therapy, individualized movement assessment, and motivational coaching require physical presence and empathy.", training:["Physiotherapy degree & national licensure","Supervised clinical placements (1,200+ hours)","Manual therapy & dry needling certifications","Specialization: sports, neurological, geriatric rehab"], examPrep:["NPTE (USA) / HCPC registration (UK) / country board exam","Anatomy, biomechanics & musculoskeletal assessment","Neurological & cardiopulmonary physiotherapy concepts","Clinical OSCE: patient handling & therapeutic techniques"] },
-  { id:"entrepreneur", title:"Entrepreneur / Small Business Owner", sector:"Business", description:"Starts and runs an independent business, managing operations, people, finances, and growth strategy.", riasec:{R:45,I:50,A:50,S:50,E:90,C:50}, ocean:{O:75,C:70,E:70,A:50,N:35}, cognitive:75, eq:75, grit:95, integrity:75, adaptability:90, values:["autonomy","impact","financial_growth"], aiResilience:80, resilienceReason:"Vision-setting, relationship-building, risk-taking, and adapting to local market context are inherently human and entrepreneurial.", training:["Business fundamentals: finance, marketing, operations","Networking, sales & customer development skills","Leadership, resilience & adaptive thinking coaching","Regulatory, tax & local market knowledge"], examPrep:["MBA entrance: GMAT / GRE / CAT (India)","Business plan competitions & accelerator applications","CFA Level 1 (financial literacy foundation)","MSME / startup scheme eligibility assessments"] },
-  { id:"teacher", title:"Teacher / Educator", sector:"Education", description:"Plans and delivers instruction, mentors students, and adapts teaching to diverse learning needs and backgrounds.", riasec:{R:25,I:55,A:50,S:90,E:45,C:45}, ocean:{O:65,C:70,E:65,A:80,N:35}, cognitive:70, eq:88, grit:75, integrity:85, adaptability:80, values:["helping_others","impact","service"], aiResilience:75, resilienceReason:"Mentorship, emotional development, classroom management, and personalized student motivation remain deeply relational and human.", training:["Teaching degree & certification / PGCE","Subject-matter expertise development & updates","Classroom management & differentiated instruction","EdTech & AI learning tool integration"], examPrep:["CTET / TET (India) / QTS (UK) / state licensing exam","Child development, pedagogy & learning theories","Subject-specific content knowledge assessments","Teaching practice portfolio & demo lesson evaluation"] },
-  { id:"social_worker", title:"Social Worker", sector:"Social Services", description:"Supports individuals and families facing crisis, connecting them to resources and advocating for wellbeing.", riasec:{R:15,I:45,A:35,S:95,E:40,C:40}, ocean:{O:60,C:65,E:55,A:90,N:35}, cognitive:60, eq:92, grit:80, integrity:90, adaptability:75, values:["helping_others","service","justice"], aiResilience:88, resilienceReason:"Crisis intervention, trust-building, and navigating complex human and legal systems require sustained empathetic human presence.", training:["Social work degree (BSW/MSW) & licensure","Trauma-informed care & safeguarding certification","Case management systems & documentation","Local resource network knowledge & community ties"], examPrep:["ASWB licensing exam (USA) / SWE registration (UK)","Human behavior, social environment & systems theory","Social policy, law & ethical practice standards","Field placement documentation & competency assessment"] },
-  { id:"construction_manager", title:"Construction Project Manager", sector:"Construction", description:"Plans, coordinates, and oversees construction projects from inception to completion on time and budget.", riasec:{R:70,I:40,A:20,S:45,E:75,C:60}, ocean:{O:50,C:80,E:60,A:55,N:35}, cognitive:70, eq:65, grit:80, integrity:85, adaptability:75, values:["stability","tangible_results","leadership"], aiResilience:85, resilienceReason:"On-site coordination, physical site judgment, contractor relationships, and adaptive problem-solving in unpredictable environments.", training:["Construction management degree/diploma or trade background","PMP or Prince2 project management certification","Safety regulation & site compliance training","Negotiation, vendor & subcontractor management"], examPrep:["PMP exam (PMI) / PRINCE2 Foundation & Practitioner","OSHA 30-hour construction safety certification","Civil engineering & building codes fundamentals","Quantity surveying & project cost estimation"] },
-  { id:"elder_care", title:"Elder Care / Geriatric Specialist", sector:"Healthcare", description:"Provides care, companionship, and support services for elderly individuals in home or residential settings.", riasec:{R:35,I:30,A:20,S:95,E:25,C:45}, ocean:{O:50,C:70,E:55,A:90,N:30}, cognitive:50, eq:90, grit:80, integrity:85, adaptability:75, values:["helping_others","service","stability"], aiResilience:93, resilienceReason:"Companionship, hands-on personal care, and emotional connection for vulnerable populations is one of the most automation-resistant fields globally.", training:["Caregiver certification & practical skill training","First aid, medication management & dementia care","Family communication & end-of-life support training","Local eldercare regulations & safeguarding compliance"], examPrep:["CNA / HHA certification exam (USA) / NVQ Level 2–3 (UK)","Dementia care & Alzheimer's specialist certification","First aid & basic life support (BLS) certification","Safeguarding vulnerable adults: legal & ethical framework"] },
-  { id:"ai_ethics", title:"AI Ethics & Governance Specialist", sector:"Technology/Policy", description:"Evaluates AI systems for fairness, bias, safety, and regulatory compliance across industries.", riasec:{R:15,I:80,A:30,S:55,E:50,C:65}, ocean:{O:80,C:75,E:50,A:60,N:35}, cognitive:85, eq:70, grit:70, integrity:95, adaptability:80, values:["justice","intellectual_growth","impact"], aiResilience:80, resilienceReason:"An emerging field created BY AI disruption — requires interdisciplinary judgment (ethics, law, tech) that's inherently human-oversight-based.", training:["Cross-disciplinary background: law, CS, or philosophy","AI governance frameworks (EU AI Act, ISO 42001)","Bias auditing methodology & fairness metrics","Stakeholder communication & policy writing skills"], examPrep:["Certified Ethical Emerging Technologist (CEET)","EU AI Act compliance professional courses","MIT / Oxford / Stanford AI ethics online certifications","Legal research methods & regulatory writing skills"] },
-  { id:"massage_therapist", title:"Massage Therapist", sector:"Wellness", description:"Provides therapeutic touch-based treatments for relaxation, pain relief, and physical rehabilitation.", riasec:{R:60,I:25,A:35,S:75,E:30,C:30}, ocean:{O:55,C:65,E:50,A:80,N:35}, cognitive:45, eq:80, grit:65, integrity:80, adaptability:65, values:["helping_others","autonomy","service"], aiResilience:92, resilienceReason:"Physical touch, tactile diagnosis, and the human connection of bodywork are fundamentally non-digital and non-automatable.", training:["Massage therapy certification & licensure","Anatomy, physiology & kinesiology coursework","Specialization: sports massage, prenatal, lymphatic drainage","Business basics & client management for private practice"], examPrep:["MBLEx (USA) / country-specific licensing board exam","Anatomy & physiology written and practical assessments","Pathology contraindications & treatment planning","Business & ethics for massage therapy practice"] },
-  { id:"financial_advisor", title:"Financial Advisor / Wealth Manager", sector:"Finance", description:"Advises individuals and businesses on financial planning, investments, and risk management strategies.", riasec:{R:15,I:55,A:20,S:65,E:75,C:70}, ocean:{O:55,C:80,E:60,A:60,N:35}, cognitive:80, eq:80, grit:75, integrity:92, adaptability:70, values:["financial_growth","service","stability"], aiResilience:60, resilienceReason:"Robo-advisors handle basic portfolio management; trust-based relationships during major life decisions remain irreplaceably human.", training:["Financial certification: CFP, CFA, or regional equivalent","Regulatory compliance & fiduciary duty training","AI-assisted financial analysis tool fluency","Client communication, trust-building & EQ coaching"], examPrep:["CFP exam (6 domains: planning, investment, tax, estate)","CFA Level 1–3 (ethics, economics, portfolio management)","NISM / SEBI certification (India) / FCA authorization (UK)","Securities law, compliance & financial planning case studies"] },
-  { id:"cybersecurity", title:"Cybersecurity Analyst", sector:"Technology", description:"Protects systems and data from threats through monitoring, defense strategy, and incident response.", riasec:{R:30,I:80,A:25,S:35,E:40,C:65}, ocean:{O:70,C:80,E:40,A:45,N:40}, cognitive:88, eq:50, grit:80, integrity:90, adaptability:80, values:["intellectual_growth","justice","stability"], aiResilience:65, resilienceReason:"Adversarial human attackers require human creative defense, judgment, and ethical incident-response that AI supports but cannot replace.", training:["Security certifications: CompTIA Security+, CISSP, CEH","Hands-on labs, CTF competitions & threat simulation","AI-driven SIEM & threat intelligence tool fluency","Incident response, forensics & ethical hacking practice"], examPrep:["CompTIA Security+ / Network+ certification exams","CEH (Certified Ethical Hacker) exam preparation","CISSP: 8 domains of cybersecurity knowledge","Hands-on: TryHackMe, HackTheBox, Capture the Flag"] },
-  { id:"speech_pathologist", title:"Speech-Language Pathologist", sector:"Healthcare", description:"Assesses and treats communication and swallowing disorders across all ages and clinical conditions.", riasec:{R:25,I:60,A:35,S:90,E:30,C:45}, ocean:{O:60,C:75,E:55,A:80,N:30}, cognitive:75, eq:88, grit:75, integrity:85, adaptability:75, values:["helping_others","service","stability"], aiResilience:88, resilienceReason:"Individualized therapeutic relationships with patients requiring patience and adaptive communication are difficult to automate.", training:["Graduate degree & clinical licensure (CCC-SLP or equivalent)","500+ supervised clinical hours across settings","Specialization: pediatric language, dysphagia, neurogenic disorders","AAC device & assistive communication technology skills"], examPrep:["Praxis SLP exam (USA) / HCPC registration (UK)","Phonetics, linguistics & language acquisition theory","Anatomy of speech mechanism & dysphagia management","Clinical methods: AAC, fluency, voice & resonance"] },
-  { id:"diplomat", title:"Diplomat / Foreign Service Officer", sector:"Government", description:"Represents national interests abroad through negotiation, relationship-building, and international policy development.", riasec:{R:10,I:60,A:35,S:70,E:75,C:55}, ocean:{O:75,C:75,E:65,A:60,N:35}, cognitive:85, eq:85, grit:85, integrity:92, adaptability:90, values:["justice","impact","service"], aiResilience:88, resilienceReason:"High-stakes negotiation, cross-cultural relationship building, and geopolitical judgment require deeply human trust and discretion.", training:["Civil/foreign service entrance exams & competitive selection","Language proficiency: 2+ languages at advanced level","Cross-cultural communication & protocol training","International law, policy analysis & negotiation skills"], examPrep:["IFS / UPSC Civil Services (India) / FSOT (USA) / FCDO (UK)","International relations, geopolitics & diplomatic history","Constitutional law, public policy & governance","Essay writing, group discussion & personality interview"] },
-  { id:"lawyer", title:"Lawyer / Legal Counsel", sector:"Legal", description:"Provides legal advice, represents clients, and navigates regulatory, contractual, and litigation matters.", riasec:{R:15,I:65,A:30,S:55,E:70,C:65}, ocean:{O:65,C:80,E:60,A:50,N:40}, cognitive:90, eq:70, grit:80, integrity:90, adaptability:70, values:["justice","intellectual_growth","impact"], aiResilience:55, resilienceReason:"Document review is increasingly automated; courtroom advocacy, ethical judgment in ambiguous cases, and client trust remain human-led.", training:["Law degree & bar admission (LLB/JD + bar exam)","AI legal research tool fluency (Harvey, CaseText)","Courtroom advocacy & negotiation skills","Specialization: litigation, corporate, IP, or emerging tech law"], examPrep:["LSAT (USA/Canada) / CLAT (India) / SQE (UK)","Constitutional law, torts, contracts & criminal law","Legal reasoning, case analysis & moot court practice","Bar exam: MBE or country equivalent"] },
-  { id:"midwife", title:"Midwife", sector:"Healthcare", description:"Provides holistic care for pregnant individuals through pregnancy, labor, birth, and postpartum recovery.", riasec:{R:45,I:55,A:20,S:90,E:30,C:40}, ocean:{O:55,C:75,E:55,A:85,N:30}, cognitive:70, eq:90, grit:85, integrity:90, adaptability:80, values:["helping_others","service","stability"], aiResilience:92, resilienceReason:"Childbirth support requires physical presence, real-time clinical judgment, and deep emotional trust during a vulnerable life event.", training:["Midwifery degree/diploma & national licensure","Supervised birth attendance (clinical hours requirement)","Emergency obstetric care & neonatal resuscitation","Postnatal mental health & family support training"], examPrep:["NMC registration (UK) / AMCB exam (USA) / country board","Obstetric anatomy, physiology of pregnancy & labor","Emergency obstetric protocols & neonatal assessment","Pharmacology in midwifery & clinical decision making"] },
-  { id:"personal_trainer", title:"Personal Trainer / Fitness Coach", sector:"Wellness", description:"Designs and guides individualized fitness programs and motivates clients toward sustainable health goals.", riasec:{R:55,I:30,A:25,S:80,E:55,C:35}, ocean:{O:55,C:70,E:65,A:65,N:35}, cognitive:50, eq:80, grit:80, integrity:75, adaptability:75, values:["helping_others","autonomy","service"], aiResilience:80, resilienceReason:"Motivation, accountability, real-time feedback, and hands-on form correction in physical training require embodied human presence.", training:["Personal training certification: NASM, ACE, ISSA or equivalent","Nutrition science fundamentals & practical application","Injury prevention, corrective exercise & anatomy","Client psychology, behavior change & motivation coaching"], examPrep:["NASM-CPT / ACE-CPT / ISSA certification written exam","Exercise physiology, anatomy & biomechanics","Nutrition fundamentals & special populations training","Practical assessment: program design & client demonstrations"] },
-  { id:"urban_planner", title:"Urban / City Planner", sector:"Government/Policy", description:"Plans land use, zoning, and infrastructure to shape livable, sustainable, and equitable communities.", riasec:{R:35,I:65,A:45,S:60,E:50,C:60}, ocean:{O:70,C:75,E:50,A:60,N:35}, cognitive:80, eq:70, grit:70, integrity:85, adaptability:70, values:["impact","justice","stability"], aiResilience:75, resilienceReason:"Community engagement, political negotiation, and balancing competing stakeholder interests require human judgment, trust, and democratic legitimacy.", training:["Urban planning degree (MURP or equivalent)","GIS, spatial analysis & AI planning tool fluency","Public engagement, facilitation & conflict resolution","Zoning law, environmental policy & sustainable design"], examPrep:["AICP exam (USA) / RTPI Assessment (UK) / country equivalent","Urban land use law, zoning codes & environmental regulations","GIS & spatial data analysis practical skills","Community development, housing policy & transport planning"] },
-  { id:"landscape_designer", title:"Landscape Designer / Horticulturist", sector:"Design/Agriculture", description:"Designs and maintains outdoor spaces, gardens, and green infrastructure for people and ecosystems.", riasec:{R:75,I:40,A:65,S:30,E:35,C:35}, ocean:{O:75,C:65,E:45,A:55,N:35}, cognitive:60, eq:55, grit:70, integrity:70, adaptability:70, values:["creativity","autonomy","tangible_results"], aiResilience:85, resilienceReason:"Site-specific physical work with living systems, weather variability, and client-specific aesthetic judgment resists automation.", training:["Horticulture / landscape design certification or degree","Plant science, soil health & local ecosystem knowledge","CAD, SketchUp & visualization software basics","Business operations & client management for self-employment"], examPrep:["RHS Level 2–3 (UK) / LDP certification (USA)","Plant identification, soil science & ecology exams","AutoCAD / SketchUp landscape drafting assessment","Business planning & project costing for landscape practice"] },
-  { id:"hr_manager", title:"HR / People Operations Manager", sector:"Business", description:"Manages talent acquisition, employee relations, organizational culture, and people development strategy.", riasec:{R:15,I:40,A:30,S:80,E:65,C:60}, ocean:{O:60,C:75,E:60,A:75,N:35}, cognitive:70, eq:88, grit:70, integrity:88, adaptability:75, values:["helping_others","stability","leadership"], aiResilience:70, resilienceReason:"Conflict resolution, culture-building, and sensitive interpersonal judgment in terminations and disputes require deeply human discretion.", training:["HR certification: SHRM-CP, CIPD Level 5 or equivalent","Employment law & compliance updates (region-specific)","Conflict resolution, mediation & coaching skills","People analytics & HRIS platform fluency"], examPrep:["SHRM-CP / SHRM-SCP (USA) or CIPD Level 5 (UK) exam","Employment law, labor relations & HR ethics","Organizational behavior, talent management & L&D","HR analytics: data interpretation & workforce planning"] },
-  { id:"event_planner", title:"Event Planner / Producer", sector:"Hospitality", description:"Designs, coordinates, and executes events — from intimate gatherings to large-scale productions.", riasec:{R:30,I:30,A:70,S:65,E:75,C:55}, ocean:{O:75,C:75,E:65,A:60,N:40}, cognitive:60, eq:80, grit:80, integrity:70, adaptability:90, values:["creativity","autonomy","tangible_results"], aiResilience:75, resilienceReason:"Real-time problem solving, vendor relationships, and on-the-ground crisis management during live events resist automation.", training:["Event management certification (CMP or regional equivalent)","Vendor sourcing, contract negotiation & budget management","Crisis management & contingency planning for live events","Industry networking & portfolio development"], examPrep:["CMP (Certified Meeting Professional) exam","Event budgeting, venue contracts & supplier negotiation","Health & safety, risk assessment for public events","Portfolio review: event design brief & case study presentation"] },
-  { id:"early_childhood", title:"Early Childhood Educator", sector:"Education", description:"Supports the developmental, social, emotional, and educational growth of young children aged 0–8.", riasec:{R:30,I:35,A:55,S:95,E:35,C:40}, ocean:{O:60,C:70,E:65,A:85,N:30}, cognitive:55, eq:92, grit:80, integrity:88, adaptability:80, values:["helping_others","service","stability"], aiResilience:90, resilienceReason:"Early childhood development is fundamentally relational — requiring nurturing, physical presence, and responsive human connection.", training:["Early childhood education diploma/degree & certification","Child development theory & age-appropriate pedagogy","Safeguarding, first aid & mandatory reporting training","Parent communication & family engagement strategies"], examPrep:["CDA credential exam (USA) / CACHE Level 3 (UK) / country equiv.","Child development theories: Piaget, Vygotsky, Erikson","Observation, documentation & assessment of young children","Safeguarding law, child protection protocols & ethics"] },
-  { id:"architect", title:"Architect", sector:"Design/Construction", description:"Designs buildings and spaces, balancing aesthetics, function, sustainability, and regulatory requirements.", riasec:{R:55,I:65,A:80,S:35,E:45,C:55}, ocean:{O:85,C:75,E:45,A:50,N:35}, cognitive:85, eq:60, grit:75, integrity:75, adaptability:75, values:["creativity","tangible_results","intellectual_growth"], aiResilience:65, resilienceReason:"AI assists drafting and visualization, but holistic design judgment, client relationships, and regulatory navigation remain human.", training:["Architecture degree (5–7 years), internship & licensure","AI-assisted CAD, BIM & generative design tool fluency","Building codes, accessibility & sustainability standards","Client presentation, stakeholder management & project leadership"], examPrep:["Architecture Registration Exam (ARE 5.0, USA) / ARB (UK)","Building technology, structures & environmental systems","History & theory of architecture","Design portfolio: studio projects & technical drawings review"] },
-  { id:"marketing_strategist", title:"Marketing Strategist / Brand Manager", sector:"Business", description:"Develops brand positioning, campaign strategy, and market growth plans for organizations.", riasec:{R:20,I:50,A:65,S:55,E:80,C:45}, ocean:{O:75,C:65,E:70,A:55,N:40}, cognitive:75, eq:75, grit:70, integrity:65, adaptability:80, values:["creativity","impact","financial_growth"], aiResilience:50, resilienceReason:"AI handles content generation and analytics; resilience depends on strategic vision, cultural insight, and cross-functional leadership.", training:["Marketing fundamentals: brand strategy, consumer psychology","Data analytics, SEO & performance marketing platforms","AI content & campaign tool integration","Storytelling, stakeholder influence & executive communication"], examPrep:["Google Ads / Analytics certification","Meta Blueprint & digital marketing certifications","CIM (Chartered Institute of Marketing) diploma exams","Brand strategy case study presentations & portfolio"] },
-  { id:"veterinarian", title:"Veterinarian", sector:"Healthcare", description:"Diagnoses and treats illnesses, injuries, and preventive care needs in animals across species.", riasec:{R:55,I:75,A:20,S:65,E:35,C:45}, ocean:{O:60,C:80,E:50,A:75,N:35}, cognitive:85, eq:75, grit:80, integrity:85, adaptability:70, values:["helping_others","service","stability"], aiResilience:88, resilienceReason:"Physical examination, surgical skill, and animal handling judgment cannot be replicated remotely or digitally at scale.", training:["Veterinary medicine degree (4–6 years) & licensure","Clinical rotations & species-specific hands-on training","Surgical skills development & emergency medicine","Specialization: small animal, large animal, exotic, oncology"], examPrep:["NAVLE (USA) / RCVS membership (UK) / country board exam","Veterinary anatomy, physiology & pharmacology","Pathology, clinical diagnosis & surgical techniques","Animal behavior, welfare & veterinary ethics"] },
-  { id:"product_manager", title:"Product Manager", sector:"Technology", description:"Defines product vision, prioritizes roadmaps, and bridges engineering, design, and business stakeholders.", riasec:{R:20,I:60,A:45,S:60,E:80,C:55}, ocean:{O:70,C:75,E:65,A:60,N:35}, cognitive:80, eq:80, grit:75, integrity:75, adaptability:85, values:["impact","innovation","leadership"], aiResilience:60, resilienceReason:"Stakeholder alignment, prioritization judgment, and cross-functional leadership require human negotiation and vision-setting AI can't replicate.", training:["Product management certification (AIPMM, SVPG frameworks)","Data literacy: SQL, analytics & A/B testing fundamentals","Stakeholder communication, negotiation & leadership skills","Domain expertise in target industry or technology vertical"], examPrep:["AIPMM CPM / PMPO certification exam","Google UX Design / Product Analytics certifications","Case study interviews: product design, estimation, strategy","Technical literacy: system design basics, APIs, agile/scrum"] },
-];
+// ─── COLOUR TOKENS ────────────────────────────────────────────────────────────
+// Deep navy + warm gold + friendly teal — feels trustworthy but not intimidating
+// Signature element: emoji-rich module intro cards that feel like a quiz game, not a test
 
-// ─── DEMOGRAPHIC HELPERS ─────────────────────────────────────────────────────
-// These are used to contextualise matching, gap analysis, and AI narrative
-
-function getAgeGroup(age) {
-  const a = parseInt(age);
-  if (a <= 22) return "student";          // fresh grad / student
-  if (a <= 30) return "earlyCareer";      // early career
-  if (a <= 45) return "midCareer";        // mid career
-  return "seniorCareer";                  // senior / career change
-}
-
-function getExperienceLevel(years) {
-  const y = parseInt(years);
-  if (y === 0) return "fresher";
-  if (y <= 3)  return "junior";
-  if (y <= 10) return "mid";
-  return "senior";
-}
-
-function getSalaryBand(salary) {
-  // salary stored as monthly in INR (or equivalent)
-  const s = parseInt(salary);
-  if (s <= 30000)  return "entry";      // ≤ ₹30k/mo
-  if (s <= 80000)  return "mid";        // ₹30k–80k/mo
-  if (s <= 200000) return "upper";      // ₹80k–2L/mo
-  return "senior";                      // > ₹2L/mo
-}
-
-// Career transition feasibility — penalises careers that need full degrees
-// if person is senior / high salary (unlikely to restart from scratch)
-function transitionFeasibility(career, profile) {
-  const exp = getExperienceLevel(profile.experience);
-  const sal = getSalaryBand(profile.salary);
-  const age = getAgeGroup(profile.age);
-  // Careers that require full undergraduate degree to enter
-  const fullDegreeRequired = ["registered_nurse","physiotherapist","psychologist",
-    "speech_pathologist","midwife","veterinarian","architect","lawyer","diplomat"];
-  if (fullDegreeRequired.includes(career.id) && (age==="seniorCareer" || sal==="senior")) {
-    return 0.75; // penalise — hard pivot, not impossible
-  }
-  // Careers where seniority / experience is a big asset
-  const experienceValued = ["entrepreneur","construction_manager","hr_manager",
-    "financial_advisor","product_manager","marketing_strategist","urban_planner","diplomat"];
-  if (experienceValued.includes(career.id) && (exp==="mid"||exp==="senior")) {
-    return 1.15; // boost — experience accelerates entry
-  }
-  return 1.0;
-}
-
-// City-based salary expectation context for AI narrative
-function getCityContext(city) {
-  const c = (city||"").toLowerCase();
-  if (["mumbai","delhi","bangalore","bengaluru","hyderabad","pune","chennai","gurgaon","noida"].some(x=>c.includes(x)))
-    return { tier:"metro", note:"Being based in a major metro gives you strong access to top employers, global firms, and high-demand roles in this sector." };
-  if (["ahmedabad","kolkata","jaipur","lucknow","chandigarh","kochi","indore","bhopal"].some(x=>c.includes(x)))
-    return { tier:"tier2", note:"Your city has a growing job market — this career has strong demand locally, with remote/hybrid options expanding your reach to metro opportunities." };
-  return { tier:"other", note:"While local opportunities may vary, this career has strong global demand and remote / relocation pathways worth exploring." };
-}
-
-// ─── ASSESSMENT ITEMS ────────────────────────────────────────────────────────
-const COGNITIVE_ITEMS = [
-  { id:"c1", text:"Which number comes next: 2, 6, 12, 20, 30, ?", options:["36","40","42","44"], correct:2 },
-  { id:"c2", text:"If all Zigs are Zags, and all Zags are Zogs, then all Zigs are:", options:["Zogs","Not Zogs","Zags but not Zogs","Cannot be determined"], correct:0 },
-  { id:"c3", text:"BOOK is to READ as FORK is to:", options:["Kitchen","Eat","Spoon","Metal"], correct:1 },
-  { id:"c4", text:"A train travels 60 km in 45 minutes. How far in 2 hours?", options:["120 km","150 km","160 km","180 km"], correct:2 },
-  { id:"c5", text:"Which word does NOT belong: Trumpet, Flute, Violin, Drum?", options:["Trumpet","Flute","Violin","Drum"], correct:2 },
-  { id:"c6", text:"Author is to Book as Composer is to:", options:["Orchestra","Symphony","Piano","Concert"], correct:1 },
-  { id:"c7", text:"Rearranging 'NEWDOOR' gives the name of a:", options:["City","Animal","Ocean","Country"], correct:2 },
-  { id:"c8", text:"A is taller than B. C is shorter than B. Who is tallest?", options:["A","B","C","Cannot be determined"], correct:0 },
-  { id:"c9", text:"What is 15% of 240?", options:["24","30","36","42"], correct:2 },
-  { id:"c10", text:"If today is Wednesday, what day is it 100 days from now?", options:["Monday","Tuesday","Thursday","Friday"], correct:2 },
-  { id:"c11", text:"Odd one out: 121, 144, 169, 200, 225", options:["144","169","200","225"], correct:2 },
-  { id:"c12", text:"Complete: 1, 1, 2, 3, 5, 8, 13, ?", options:["18","20","21","24"], correct:2 },
-  { id:"c13", text:"'No fish can fly. A trout is a fish.' Therefore:", options:["A trout can fly","A trout cannot fly","Some fish can fly","Cannot be determined"], correct:1 },
-  { id:"c14", text:"A rectangle has perimeter 24 cm, length 7 cm. Width?", options:["3 cm","4 cm","5 cm","6 cm"], correct:1 },
-  { id:"c15", text:"Which is prime?", options:["91","87","97","99"], correct:2 },
-  { id:"c16", text:"5 machines make 5 widgets in 5 minutes. 100 machines, 100 widgets?", options:["5 minutes","20 minutes","100 minutes","1 minute"], correct:0 },
-  { id:"c17", text:"Opposite of 'meticulous'?", options:["Careful","Careless","Curious","Cautious"], correct:1 },
-  { id:"c18", text:"STRIPE → TUSJQF. PLANT → ?", options:["QMBOU","QMBOT","OKZMS","QNBOU"], correct:0 },
-  { id:"c19", text:"Clock shows 3:15. Angle between hour & minute hands?", options:["0°","7.5°","15°","22.5°"], correct:1 },
-  { id:"c20", text:"Circle, Square, Circle, Square, Circle — next?", options:["Circle","Square","Triangle","Hexagon"], correct:1 },
-];
-const EQ_ITEMS = [
-  { id:"eq1", text:"I can usually tell how someone is feeling even if they don't say it.", reverse:false },
-  { id:"eq2", text:"When I'm upset, I find it hard to calm myself down.", reverse:true },
-  { id:"eq3", text:"I notice when my mood is affecting how I treat other people.", reverse:false },
-  { id:"eq4", text:"I find it difficult to understand why people react the way they do.", reverse:true },
-  { id:"eq5", text:"I can stay calm and think clearly during stressful situations.", reverse:false },
-  { id:"eq6", text:"I often say things I regret when I'm angry or frustrated.", reverse:true },
-  { id:"eq7", text:"I am good at resolving conflicts between people.", reverse:false },
-  { id:"eq8", text:"I struggle to adapt my communication style to different people.", reverse:true },
-  { id:"eq9", text:"I can recognize my own emotional triggers before they take over.", reverse:false },
-  { id:"eq10", text:"Other people's emotions don't really affect me.", reverse:true },
-  { id:"eq11", text:"I actively listen to understand, not just to respond.", reverse:false },
-  { id:"eq12", text:"I find it hard to give or receive constructive feedback gracefully.", reverse:true },
-  { id:"eq13", text:"I can motivate myself even when things feel discouraging.", reverse:false },
-  { id:"eq14", text:"I tend to avoid difficult conversations rather than address them.", reverse:true },
-  { id:"eq15", text:"I can sense tension in a room even before anyone speaks.", reverse:false },
-];
-const MBTI_ITEMS = [
-  { id:"m1", dichotomy:"EI", a:"I feel energized after spending time with a group.", b:"I feel energized after quiet time alone." },
-  { id:"m2", dichotomy:"EI", a:"I prefer to think out loud and talk through ideas.", b:"I prefer to think privately before speaking." },
-  { id:"m3", dichotomy:"EI", a:"At a party, I mingle with many people.", b:"At a party, I stick with a few people I know." },
-  { id:"m4", dichotomy:"EI", a:"I find it easy to start conversations with strangers.", b:"I find small talk with strangers draining." },
-  { id:"m5", dichotomy:"EI", a:"I prefer active, busy work environments.", b:"I prefer calm, quiet work environments." },
-  { id:"m6", dichotomy:"EI", a:"I tend to act first and reflect later.", b:"I tend to reflect first and act later." },
-  { id:"m7", dichotomy:"SN", a:"I focus on concrete facts and present realities.", b:"I focus on patterns, possibilities, and future implications." },
-  { id:"m8", dichotomy:"SN", a:"I prefer step-by-step instructions.", b:"I prefer figuring things out my own way." },
-  { id:"m9", dichotomy:"SN", a:"I trust experience and what has worked before.", b:"I trust inspiration and new ways of doing things." },
-  { id:"m10", dichotomy:"SN", a:"I notice small details others might miss.", b:"I notice the big picture more than details." },
-  { id:"m11", dichotomy:"SN", a:"I prefer practical, applicable knowledge.", b:"I enjoy abstract theories for their own sake." },
-  { id:"m12", dichotomy:"SN", a:"I describe things in specific, literal terms.", b:"I use metaphors and analogies naturally." },
-  { id:"m13", dichotomy:"TF", a:"I prioritize logic and consistency in decisions.", b:"I prioritize people's feelings and harmony." },
-  { id:"m14", dichotomy:"TF", a:"I give feedback directly, even if it stings.", b:"I give feedback gently, considering impact." },
-  { id:"m15", dichotomy:"TF", a:"I value being seen as competent and fair.", b:"I value being seen as kind and supportive." },
-  { id:"m16", dichotomy:"TF", a:"I make decisions based on objective analysis.", b:"I make decisions based on personal values." },
-  { id:"m17", dichotomy:"TF", a:"Conflict is acceptable if it leads to the right outcome.", b:"Conflict should be minimized to preserve relationships." },
-  { id:"m18", dichotomy:"TF", a:"I critique ideas critically and directly.", b:"I find positives before raising concerns." },
-  { id:"m19", dichotomy:"JP", a:"I like having a clear plan and sticking to it.", b:"I like keeping options open and being spontaneous." },
-  { id:"m20", dichotomy:"JP", a:"I feel satisfied completing tasks ahead of time.", b:"I work best under the pressure of a deadline." },
-  { id:"m21", dichotomy:"JP", a:"I prefer organized, structured environments.", b:"I prefer flexible, adaptable environments." },
-  { id:"m22", dichotomy:"JP", a:"I make decisions quickly and move on.", b:"I keep exploring options before deciding." },
-  { id:"m23", dichotomy:"JP", a:"My workspace tends to be organized and tidy.", b:"My workspace is functional but can be cluttered." },
-  { id:"m24", dichotomy:"JP", a:"I finish one task completely before starting another.", b:"I enjoy juggling multiple tasks simultaneously." },
-];
-const RIASEC_ITEMS = [
-  { id:"r1", text:"Repairing mechanical or electronic equipment", category:"R" },
-  { id:"r2", text:"Building or constructing things with tools", category:"R" },
-  { id:"r3", text:"Working outdoors with machinery, plants, or animals", category:"R" },
-  { id:"r4", text:"Operating vehicles, heavy equipment, or technical instruments", category:"R" },
-  { id:"r5", text:"Doing physically active, hands-on work", category:"R" },
-  { id:"i1", text:"Conducting scientific experiments or research", category:"I" },
-  { id:"i2", text:"Solving complex mathematical or logical problems", category:"I" },
-  { id:"i3", text:"Analyzing data to find patterns or insights", category:"I" },
-  { id:"i4", text:"Reading about scientific theories or discoveries", category:"I" },
-  { id:"i5", text:"Diagnosing the root cause of a problem before fixing it", category:"I" },
-  { id:"a1", text:"Creating art, music, writing, or design", category:"A" },
-  { id:"a2", text:"Expressing ideas in original or unconventional ways", category:"A" },
-  { id:"a3", text:"Performing in front of others (acting, music, dance)", category:"A" },
-  { id:"a4", text:"Designing spaces, products, or visual experiences", category:"A" },
-  { id:"a5", text:"Improvising or experimenting without a fixed plan", category:"A" },
-  { id:"s1", text:"Teaching, training, or mentoring others", category:"S" },
-  { id:"s2", text:"Helping people resolve personal problems", category:"S" },
-  { id:"s3", text:"Working as part of a caring or support team", category:"S" },
-  { id:"s4", text:"Listening to people and offering guidance", category:"S" },
-  { id:"s5", text:"Volunteering for causes that help communities", category:"S" },
-  { id:"e1", text:"Persuading others to support an idea or buy a product", category:"E" },
-  { id:"e2", text:"Leading a team toward a shared goal", category:"E" },
-  { id:"e3", text:"Starting new projects or ventures", category:"E" },
-  { id:"e4", text:"Negotiating deals or resolving disputes", category:"E" },
-  { id:"e5", text:"Taking calculated risks to pursue ambitious goals", category:"E" },
-  { id:"c1r", text:"Organizing files, records, or schedules meticulously", category:"C" },
-  { id:"c2r", text:"Following clear procedures and established rules", category:"C" },
-  { id:"c3r", text:"Working with numbers, spreadsheets, or budgets", category:"C" },
-  { id:"c4r", text:"Ensuring accuracy and attention to detail", category:"C" },
-  { id:"c5r", text:"Maintaining order and structure in a workplace", category:"C" },
-];
-const OCEAN_ITEMS = [
-  { id:"o1", text:"I enjoy exploring new ideas and unconventional approaches.", trait:"O", reverse:false },
-  { id:"o2", text:"I have a vivid imagination.", trait:"O", reverse:false },
-  { id:"o3", text:"I prefer familiar routines over new experiences.", trait:"O", reverse:true },
-  { id:"o4", text:"I'm curious about many different topics.", trait:"O", reverse:false },
-  { id:"o5", text:"I rarely think about abstract or philosophical questions.", trait:"O", reverse:true },
-  { id:"c1b", text:"I plan ahead carefully rather than acting on impulse.", trait:"C", reverse:false },
-  { id:"c2b", text:"I keep my commitments and follow through on promises.", trait:"C", reverse:false },
-  { id:"c3b", text:"I often leave tasks unfinished or postpone them.", trait:"C", reverse:true },
-  { id:"c4b", text:"I pay close attention to details in my work.", trait:"C", reverse:false },
-  { id:"c5b", text:"My workspace and schedule tend to be disorganized.", trait:"C", reverse:true },
-  { id:"e1b", text:"I feel comfortable being the center of attention.", trait:"E", reverse:false },
-  { id:"e2b", text:"I gain energy from being around other people.", trait:"E", reverse:false },
-  { id:"e3b", text:"I prefer to keep to myself in social settings.", trait:"E", reverse:true },
-  { id:"e4b", text:"I am talkative and outgoing with new people.", trait:"E", reverse:false },
-  { id:"e5b", text:"I need a lot of alone time to recharge.", trait:"E", reverse:true },
-  { id:"a1b", text:"I genuinely care about the wellbeing of others.", trait:"A", reverse:false },
-  { id:"a2b", text:"I find it easy to trust people.", trait:"A", reverse:false },
-  { id:"a3b", text:"I sometimes put my own interests first without much concern.", trait:"A", reverse:true },
-  { id:"a4b", text:"I try to be considerate and avoid hurting others' feelings.", trait:"A", reverse:false },
-  { id:"a5b", text:"I can be blunt or insensitive without realizing it.", trait:"A", reverse:true },
-  { id:"n1", text:"I often feel anxious or worried about things.", trait:"N", reverse:false },
-  { id:"n2", text:"My mood can change quickly and unpredictably.", trait:"N", reverse:false },
-  { id:"n3", text:"I generally stay calm and emotionally stable under pressure.", trait:"N", reverse:true },
-  { id:"n4", text:"I tend to dwell on negative experiences.", trait:"N", reverse:false },
-  { id:"n5", text:"I rarely feel stressed, even in difficult situations.", trait:"N", reverse:true },
-];
-const VALUES_ITEMS = [
-  { id:"v1", text:"Making a meaningful difference in other people's lives", tag:"helping_others" },
-  { id:"v2", text:"Having a stable, predictable job and income", tag:"stability" },
-  { id:"v3", text:"Making my own decisions without close supervision", tag:"autonomy" },
-  { id:"v4", text:"Expressing myself creatively in my work", tag:"creativity" },
-  { id:"v5", text:"Continuously learning and growing intellectually", tag:"intellectual_growth" },
-  { id:"v6", text:"Having a large positive impact on society", tag:"impact" },
-  { id:"v7", text:"Working on cutting-edge or innovative projects", tag:"innovation" },
-  { id:"v8", text:"Earning a high income and building wealth", tag:"financial_growth" },
-  { id:"v9", text:"Being of service to others, even behind the scenes", tag:"service" },
-  { id:"v10", text:"Standing up for fairness and justice", tag:"justice" },
-  { id:"v11", text:"Seeing tangible, physical results from my work", tag:"tangible_results" },
-  { id:"v12", text:"Leading and guiding others toward goals", tag:"leadership" },
-  { id:"v13", text:"Acting with strong personal integrity under pressure", tag:"integrity" },
-];
-const MI_ITEMS = [
-  { id:"mi1", text:"I find it easy to express ideas through writing or speaking.", domain:"Linguistic" },
-  { id:"mi2", text:"I enjoy debating, reading, or playing word games.", domain:"Linguistic" },
-  { id:"mi3", text:"I'm good at recognizing patterns and solving logical puzzles.", domain:"Logical-Math" },
-  { id:"mi4", text:"I enjoy working with numbers, formulas, or systematic processes.", domain:"Logical-Math" },
-  { id:"mi5", text:"I can easily picture objects, layouts, or designs in my mind.", domain:"Spatial" },
-  { id:"mi6", text:"I'm good at reading maps, diagrams, or visualizing 3D spaces.", domain:"Spatial" },
-  { id:"mi7", text:"I learn best by physically doing or practicing something.", domain:"Kinesthetic" },
-  { id:"mi8", text:"I have good physical coordination (sports, dance, crafts).", domain:"Kinesthetic" },
-  { id:"mi9", text:"I can easily pick up rhythms, melodies, or musical patterns.", domain:"Musical" },
-  { id:"mi10", text:"Music significantly affects my mood and concentration.", domain:"Musical" },
-  { id:"mi11", text:"I'm skilled at understanding what motivates other people.", domain:"Interpersonal" },
-  { id:"mi12", text:"People often come to me for advice or to resolve conflicts.", domain:"Interpersonal" },
-  { id:"mi13", text:"I spend time reflecting on my own thoughts, goals, and values.", domain:"Intrapersonal" },
-  { id:"mi14", text:"I have a clear sense of my own strengths and weaknesses.", domain:"Intrapersonal" },
-  { id:"mi15", text:"I notice and appreciate patterns in nature easily.", domain:"Naturalistic" },
-  { id:"mi16", text:"I feel drawn to working with plants, animals, or the outdoors.", domain:"Naturalistic" },
-];
-const GRIT_ITEMS = [
-  { id:"g1", text:"I finish whatever I begin, even when it's difficult.", reverse:false },
-  { id:"g2", text:"Setbacks don't discourage me — they motivate me to try harder.", reverse:false },
-  { id:"g3", text:"New ideas and projects sometimes distract me from ongoing ones.", reverse:true },
-  { id:"g4", text:"I am a hard worker. I never give up.", reverse:false },
-  { id:"g5", text:"I often set a goal but later choose to pursue a different one.", reverse:true },
-  { id:"g6", text:"I have overcome significant setbacks to complete something important.", reverse:false },
-  { id:"g7", text:"I have difficulty maintaining focus on long-term projects.", reverse:true },
-  { id:"g8", text:"I have achieved a goal that took years of consistent effort.", reverse:false },
-  { id:"g9", text:"My interests change significantly from year to year.", reverse:true },
-  { id:"g10", text:"Failure makes me more determined to succeed next time.", reverse:false },
-  { id:"g11", text:"I become frustrated and lose motivation when progress is slow.", reverse:true },
-  { id:"g12", text:"I maintain focus on a goal, even when others have given up.", reverse:false },
-];
-const CONFLICT_ITEMS = [
-  { id:"cf1", text:"I stay calm even when someone criticizes me unfairly.", type:"likert", reverse:false },
-  { id:"cf2", text:"Small frustrations can quickly turn into anger for me.", type:"likert", reverse:true },
-  { id:"cf3", text:"I can wait patiently for results without becoming anxious.", type:"likert", reverse:false },
-  { id:"cf4", text:"I tend to raise my voice when I disagree strongly.", type:"likert", reverse:true },
-  { id:"cf5", text:"I can separate the issue from the person during a disagreement.", type:"likert", reverse:false },
-  { id:"cf6", type:"scenario", text:"A colleague takes credit for your idea in front of leadership. You:", options:["Confront them angrily in front of everyone","Say nothing and quietly resent them","Calmly clarify your contribution, then discuss privately later","Complain to other colleagues afterward"], scores:[1,2,4,1] },
-  { id:"cf7", text:"I hold onto grudges for a long time after a conflict.", type:"likert", reverse:true },
-  { id:"cf8", text:"I can listen to an opposing viewpoint without becoming defensive.", type:"likert", reverse:false },
-  { id:"cf9", type:"scenario", text:"You're stuck in a long queue behind a slow customer. You:", options:["Feel frustration rising and consider saying something sharp","Sigh loudly and look visibly annoyed","Feel mildly impatient but use the time productively","Feel completely unaffected"], scores:[1,2,4,3] },
-  { id:"cf10", text:"Under tight deadlines, I become irritable with others.", type:"likert", reverse:true },
-  { id:"cf11", text:"I believe most conflicts can be resolved through calm discussion.", type:"likert", reverse:false },
-  { id:"cf12", type:"scenario", text:"A team member repeatedly misses deadlines, affecting your work. You:", options:["Report them to management immediately, without speaking to them","Avoid the topic to prevent conflict","Have a direct, respectful conversation to find solutions","Start doing their work yourself without saying anything"], scores:[2,1,4,1] },
-  { id:"cf13", text:"I find it difficult to apologize, even when I'm wrong.", type:"likert", reverse:true },
-  { id:"cf14", text:"I can manage my temper even in high-pressure situations.", type:"likert", reverse:false },
-  { id:"cf15", text:"I tend to interrupt others when I feel strongly about a topic.", type:"likert", reverse:true },
-];
-const ETHICS_ITEMS = [
-  { id:"et1", text:"I would report a colleague's serious mistake even at personal cost.", type:"likert", reverse:false },
-  { id:"et2", text:"I sometimes bend the truth slightly to avoid uncomfortable situations.", type:"likert", reverse:true },
-  { id:"et3", type:"scenario", text:"You discover a pricing error generating huge sales. Manager is thrilled. You:", options:["Say nothing — it's bringing in business","Quietly fix it without telling anyone","Inform your manager of the error and implications","Mention it casually to a coworker but not management"], scores:[1,2,4,1] },
-  { id:"et4", text:"I follow rules and policies even when no one is watching.", type:"likert", reverse:false },
-  { id:"et5", text:"I am comfortable taking large financial risks for large rewards.", type:"likert", reverse:false },
-  { id:"et6", type:"scenario", text:"You exaggerated an achievement in an interview and got the job. You feel:", options:["Fine — everyone does it in interviews","Uneasy but I'd let it go","Uncomfortable and would clarify the truth when relevant","I wouldn't have exaggerated in the first place"], scores:[1,2,3,4] },
-  { id:"et7", text:"I avoid taking credit for work I didn't do.", type:"likert", reverse:false },
-  { id:"et8", text:"I prefer guaranteed smaller outcomes over risky larger ones.", type:"likert", reverse:false },
-  { id:"et9", type:"scenario", text:"A friend asks you to falsely confirm their alibi for being late to work. You:", options:["Agree immediately — it's a small favor","Agree but feel guilty about it","Decline, but offer to help them communicate honestly","Tell their manager the truth without asking the friend first"], scores:[1,2,4,2] },
-  { id:"et10", text:"I think the ends sometimes justify the means.", type:"likert", reverse:true },
-  { id:"et11", text:"I would speak up about unethical behavior at work, even if risky.", type:"likert", reverse:false },
-  { id:"et12", text:"I enjoy activities with an element of danger or unpredictability.", type:"likert", reverse:false },
-  { id:"et13", text:"I keep promises even when circumstances make them inconvenient.", type:"likert", reverse:false },
-  { id:"et14", text:"I would rather lose a deal than win it through deception.", type:"likert", reverse:false },
-  { id:"et15", text:"I tend to act first and consider consequences later.", type:"likert", reverse:true },
-];
-const MINDSET_ITEMS = [
-  { id:"ms1", text:"I believe my abilities can grow significantly through effort and learning.", reverse:false },
-  { id:"ms2", text:"If I'm not naturally good at something, I tend to avoid it.", reverse:true },
-  { id:"ms3", text:"I see failure as an opportunity to learn, not a reflection of my worth.", reverse:false },
-  { id:"ms4", text:"I find it hard to change my approach once I've decided how to do something.", reverse:true },
-  { id:"ms5", text:"I actively seek feedback to improve, even when it's uncomfortable.", reverse:false },
-  { id:"ms6", text:"Major changes at work or in life make me very anxious.", reverse:true },
-  { id:"ms7", text:"I enjoy learning new tools, technologies, or skills.", reverse:false },
-  { id:"ms8", text:"I believe talent is mostly fixed and effort makes little difference.", reverse:true },
-  { id:"ms9", text:"I adapt quickly when plans change unexpectedly.", reverse:false },
-  { id:"ms10", text:"I get discouraged easily when something doesn't work the first time.", reverse:true },
-  { id:"ms11", text:"I'm excited rather than threatened by new technology like AI.", reverse:false },
-  { id:"ms12", text:"I prefer sticking to what I know rather than trying new methods.", reverse:true },
-  { id:"ms13", text:"I view challenges as opportunities for growth.", reverse:false },
-  { id:"ms14", text:"I often compare myself negatively to more talented people.", reverse:true },
-  { id:"ms15", text:"I'm willing to start over or pivot if my current approach isn't working.", reverse:false },
-];
+// ─── 100 SIMPLE QUESTIONS ACROSS 10 MODULES ──────────────────────────────────
+// Every question uses plain language a 13-year-old easily understands
+// Each module: 10 questions
 
 const MODULES = [
-  { key:"cognitive", label:"Cognitive Ability (IQ)", icon:"🧠", items:COGNITIVE_ITEMS, type:"mcq", desc:"Abstract reasoning, numerical, verbal & logical thinking." },
-  { key:"eq", label:"Emotional Intelligence (EQ)", icon:"💛", items:EQ_ITEMS, type:"likert", desc:"Self-awareness, empathy, social skill & emotional regulation." },
-  { key:"mbti", label:"Personality Type (MBTI)", icon:"🔮", items:MBTI_ITEMS, type:"forcedchoice", desc:"Four personality dichotomies to identify your type." },
-  { key:"riasec", label:"Interests — RIASEC / Holland Code", icon:"🎯", items:RIASEC_ITEMS, type:"interest", desc:"Career interest profile across 6 work environment themes." },
-  { key:"ocean", label:"Big Five Personality (OCEAN)", icon:"🌊", items:OCEAN_ITEMS, type:"likert", desc:"The globally validated five-factor personality model." },
-  { key:"values", label:"Values & Motivation", icon:"⭐", items:VALUES_ITEMS, type:"importance", desc:"What you need from work to feel fulfilled and motivated." },
-  { key:"mi", label:"Multiple Intelligences", icon:"💡", items:MI_ITEMS, type:"likert", desc:"Gardner's 8 intelligence domains — how you naturally think." },
-  { key:"grit", label:"Grit & Perseverance", icon:"🔥", items:GRIT_ITEMS, type:"likert", desc:"Your ability to persist toward long-term goals through setbacks." },
-  { key:"conflict", label:"Conflict, Anger & Patience", icon:"⚖️", items:CONFLICT_ITEMS, type:"mixed", desc:"How you manage frustration, disagreement, and tension." },
-  { key:"ethics", label:"Integrity, Ethics & Risk", icon:"🛡️", items:ETHICS_ITEMS, type:"mixed", desc:"Ethical decision-making, honesty under pressure, and risk appetite." },
-  { key:"mindset", label:"Mindset & Adaptability", icon:"🚀", items:MINDSET_ITEMS, type:"likert", desc:"Growth mindset, openness to change, and adaptability to disruption." },
+  {
+    key: "thinking",
+    label: "How You Think",
+    emoji: "🧠",
+    color: "#6C63FF",
+    light: "#EEF",
+    what: "How fast and clearly your brain solves problems.",
+    why: "Some people are great at puzzles and logic. Others are amazing at words or numbers. This finds YOUR strongest thinking style.",
+    time: "3 min",
+    type: "mcq",
+  },
+  {
+    key: "feelings",
+    label: "Understanding Feelings",
+    emoji: "💛",
+    color: "#F59E0B",
+    light: "#FFFBEB",
+    what: "How well you understand your own feelings and other people's feelings.",
+    why: "People with high emotional intelligence are amazing at teamwork, leadership, and helping others — skills no AI can replace.",
+    time: "2 min",
+    type: "agree",
+  },
+  {
+    key: "personality",
+    label: "Your Personality",
+    emoji: "🔮",
+    color: "#8B5CF6",
+    light: "#F5F3FF",
+    what: "Whether you're more outgoing or quiet, more planned or spontaneous.",
+    why: "Knowing your personality helps you pick careers where you'll actually enjoy going to work every day.",
+    time: "3 min",
+    type: "choice",
+  },
+  {
+    key: "interests",
+    label: "What You Love",
+    emoji: "🎯",
+    color: "#EF4444",
+    light: "#FEF2F2",
+    what: "Which types of activities and work you enjoy most.",
+    why: "When your job matches what you love, work feels less like work. This is one of the most important career factors.",
+    time: "2 min",
+    type: "rate",
+  },
+  {
+    key: "values",
+    label: "What Matters to You",
+    emoji: "⭐",
+    color: "#10B981",
+    light: "#ECFDF5",
+    what: "What you want most from a career — money, helping others, creativity, stability?",
+    why: "People who work in jobs that match their values feel happier and more fulfilled — even if the salary is the same.",
+    time: "2 min",
+    type: "rate",
+  },
+  {
+    key: "strengths",
+    label: "Your Superpowers",
+    emoji: "💡",
+    color: "#F97316",
+    light: "#FFF7ED",
+    what: "Which of the 8 types of intelligence are strongest in YOU.",
+    why: "Howard Gardner discovered people are smart in 8 different ways — not just maths and reading. Find YOUR kind of smart.",
+    time: "2 min",
+    type: "agree",
+  },
+  {
+    key: "grit",
+    label: "Never Give Up",
+    emoji: "🔥",
+    color: "#DC2626",
+    light: "#FEF2F2",
+    what: "How well you stick with hard things and bounce back from setbacks.",
+    why: "Research shows grit — the ability to keep going — predicts success more than talent or intelligence alone.",
+    time: "2 min",
+    type: "agree",
+  },
+  {
+    key: "people",
+    label: "How You Handle Conflict",
+    emoji: "⚖️",
+    color: "#0EA5E9",
+    light: "#F0F9FF",
+    what: "How calm and patient you are when things are difficult or unfair.",
+    why: "Every career involves people. How you handle disagreement and frustration shapes whether you thrive at work.",
+    time: "2 min",
+    type: "agree",
+  },
+  {
+    key: "ethics",
+    label: "Your Values Under Pressure",
+    emoji: "🛡️",
+    color: "#059669",
+    light: "#ECFDF5",
+    what: "How honest and ethical you are when it's hard to be.",
+    why: "Integrity — doing the right thing even when no one is watching — is one of the most valued traits in every profession.",
+    time: "2 min",
+    type: "agree",
+  },
+  {
+    key: "mindset",
+    label: "Growth Mindset",
+    emoji: "🚀",
+    color: "#7C3AED",
+    light: "#F5F3FF",
+    what: "Whether you believe you can grow and improve — or that talent is fixed.",
+    why: "People who believe they can improve are more resilient, learn faster, and achieve more. This is your most changeable trait.",
+    time: "2 min",
+    type: "agree",
+  },
+];
+
+// ─── QUESTION BANKS ───────────────────────────────────────────────────────────
+
+const QUESTIONS = {
+  thinking: [
+    { id:"t1", text:"Which number comes next? 2, 4, 8, 16, ___", options:["24","32","28","30"], correct:1 },
+    { id:"t2", text:"If all dogs are animals, and Rex is a dog, then Rex is:", options:["A cat","An animal","A bird","Not sure"], correct:1 },
+    { id:"t3", text:"PENCIL is to WRITE as KNIFE is to:", options:["Eat","Cut","Sharp","Metal"], correct:1 },
+    { id:"t4", text:"A shop sells apples for ₹5 each. You have ₹35. How many can you buy?", options:["5","6","7","8"], correct:2 },
+    { id:"t5", text:"Which word does NOT fit? Dog, Cat, Rose, Horse", options:["Dog","Cat","Rose","Horse"], correct:2 },
+    { id:"t6", text:"Complete the pattern: 🔴🔵🔴🔵🔴 — what comes next?", options:["🔴","🔵","🟡","🟢"], correct:1 },
+    { id:"t7", text:"If yesterday was Tuesday, what day is it tomorrow?", options:["Wednesday","Thursday","Friday","Monday"], correct:1 },
+    { id:"t8", text:"Rearrange these letters to make a colour: E-U-L-B", options:["LUBE","BLUE","BELL","CUBE"], correct:1 },
+    { id:"t9", text:"Which is the odd one out? 10, 20, 35, 40", options:["10","20","35","40"], correct:2 },
+    { id:"t10", text:"If a pizza is cut into 8 slices and you eat 3, what fraction is left?", options:["3/8","5/8","1/2","4/8"], correct:1 },
+  ],
+  feelings: [
+    { id:"f1", text:"I can tell when a friend is upset, even if they say they're fine.", r:false },
+    { id:"f2", text:"When I'm angry, I sometimes say things I later regret.", r:true },
+    { id:"f3", text:"I take a moment to calm down before reacting to bad news.", r:false },
+    { id:"f4", text:"It's hard for me to understand why people feel upset over small things.", r:true },
+    { id:"f5", text:"I notice when my mood is making me treat others badly.", r:false },
+    { id:"f6", text:"I find it easy to cheer up a friend who is feeling down.", r:false },
+    { id:"f7", text:"I get very stressed and panicky when things go wrong.", r:true },
+    { id:"f8", text:"I can stay calm even when someone is being unfair to me.", r:false },
+    { id:"f9", text:"I understand what I am feeling and why, most of the time.", r:false },
+    { id:"f10", text:"I often feel overwhelmed by my emotions and don't know how to handle them.", r:true },
+  ],
+  personality: [
+    { id:"p1", a:"I feel more energised after spending time with a big group of friends.", b:"I feel more energised after quiet time alone." },
+    { id:"p2", a:"I like to have a clear plan before starting a project.", b:"I prefer to figure things out as I go." },
+    { id:"p3", a:"I focus on facts and what is real right now.", b:"I love imagining possibilities and what could be." },
+    { id:"p4", a:"When making decisions, logic and fairness matter most to me.", b:"When making decisions, how it affects people's feelings matters most." },
+    { id:"p5", a:"I like finishing one task completely before starting another.", b:"I enjoy working on several things at once." },
+    { id:"p6", a:"I enjoy meeting new people and starting conversations easily.", b:"I prefer spending time with a small group of close friends." },
+    { id:"p7", a:"I prefer a well-organised bedroom or workspace.", b:"A bit of creative chaos doesn't bother me at all." },
+    { id:"p8", a:"I prefer step-by-step instructions.", b:"I prefer figuring out my own way of doing things." },
+    { id:"p9", a:"I would rather be seen as fair and honest.", b:"I would rather be seen as kind and caring." },
+    { id:"p10", a:"I like knowing exactly what is going to happen.", b:"I love surprises and spontaneous plans." },
+  ],
+  interests: [
+    { id:"i1", text:"Building, fixing, or making things with my hands" },
+    { id:"i2", text:"Solving science experiments or maths puzzles" },
+    { id:"i3", text:"Drawing, painting, writing stories, or making music" },
+    { id:"i4", text:"Helping, teaching, or taking care of other people" },
+    { id:"i5", text:"Leading a group, starting something new, or selling ideas" },
+    { id:"i6", text:"Organising, managing records, or following clear rules" },
+    { id:"i7", text:"Working with animals, plants, or nature outdoors" },
+    { id:"i8", text:"Using computers, coding, or working with technology" },
+    { id:"i9", text:"Cooking, sports, or physical activities" },
+    { id:"i10", text:"Investigating mysteries, researching facts, or analysing data" },
+  ],
+  values: [
+    { id:"v1", text:"Making a real difference in other people's lives" },
+    { id:"v2", text:"Having a stable, secure job and income" },
+    { id:"v3", text:"Being my own boss and making my own decisions" },
+    { id:"v4", text:"Expressing myself creatively through my work" },
+    { id:"v5", text:"Earning a lot of money and building wealth" },
+    { id:"v6", text:"Constantly learning new things and growing smarter" },
+    { id:"v7", text:"Working on exciting, cutting-edge projects" },
+    { id:"v8", text:"Being part of a team and having good colleagues" },
+    { id:"v9", text:"Having a job with purpose — fighting for fairness or justice" },
+    { id:"v10", text:"Seeing physical, tangible results from the work I do" },
+  ],
+  strengths: [
+    { id:"s1", text:"I find it easy to explain things clearly in words or writing.", dom:"Linguistic" },
+    { id:"s2", text:"I enjoy solving number problems and logical brain teasers.", dom:"Logical" },
+    { id:"s3", text:"I can picture things clearly in my head — like maps or designs.", dom:"Spatial" },
+    { id:"s4", text:"I learn best by moving around, doing things with my hands.", dom:"Kinesthetic" },
+    { id:"s5", text:"I can easily recognise and remember tunes, rhythms, or songs.", dom:"Musical" },
+    { id:"s6", text:"I am good at reading people and understanding what they need.", dom:"Interpersonal" },
+    { id:"s7", text:"I often reflect on my own thoughts, feelings, and goals.", dom:"Intrapersonal" },
+    { id:"s8", text:"I feel very connected to nature, animals, and the outdoors.", dom:"Naturalistic" },
+    { id:"s9", text:"I enjoy reading, writing, or telling stories more than most people.", dom:"Linguistic" },
+    { id:"s10", text:"People often come to me for advice when they have a problem.", dom:"Interpersonal" },
+  ],
+  grit: [
+    { id:"g1", text:"I finish what I start, even when it gets very hard.", r:false },
+    { id:"g2", text:"When I fail at something, I want to try harder next time.", r:false },
+    { id:"g3", text:"I often quit things halfway through when I lose interest.", r:true },
+    { id:"g4", text:"I have worked hard at something for a long time to get better at it.", r:false },
+    { id:"g5", text:"I get discouraged easily when I don't see results quickly.", r:true },
+    { id:"g6", text:"I keep going on a goal even when my friends have given up.", r:false },
+    { id:"g7", text:"I jump between different hobbies and interests a lot.", r:true },
+    { id:"g8", text:"I believe that effort and practice matter more than natural talent.", r:false },
+    { id:"g9", text:"Failing once makes me want to give up on that activity.", r:true },
+    { id:"g10", text:"I have overcome a big setback to achieve something I am proud of.", r:false },
+  ],
+  people: [
+    { id:"c1", text:"I can stay calm even when someone criticises me unfairly.", r:false },
+    { id:"c2", text:"Small annoyances can make me lose my temper quickly.", r:true },
+    { id:"c3", text:"I can wait patiently for something I really want.", r:false },
+    { id:"c4", text:"I believe most arguments can be sorted out calmly by talking.", r:false },
+    { id:"c5", text:"I hold grudges for a long time after an argument.", r:true },
+    { id:"c6", text:"I find it hard to listen to someone I disagree with.", r:true },
+    { id:"c7", text:"I can apologise when I am wrong, even if it's uncomfortable.", r:false },
+    { id:"c8", text:"I stay calm under pressure and tight deadlines.", r:false },
+    { id:"c9", text:"When someone upsets me, I say things I wish I hadn't.", r:true },
+    { id:"c10", text:"I can see the other person's point of view, even in an argument.", r:false },
+  ],
+  ethics: [
+    { id:"e1", text:"I tell the truth even when lying would make things easier.", r:false },
+    { id:"e2", text:"I follow the rules even when no one is watching.", r:false },
+    { id:"e3", text:"I sometimes take credit for things I didn't fully do.", r:true },
+    { id:"e4", text:"I would speak up if I saw someone being treated unfairly.", r:false },
+    { id:"e5", text:"I keep my promises even when it's inconvenient for me.", r:false },
+    { id:"e6", text:"I believe it's okay to bend the rules slightly if no one gets hurt.", r:true },
+    { id:"e7", text:"I would admit a mistake even if it meant getting into trouble.", r:false },
+    { id:"e8", text:"I treat everyone fairly, even people I don't like.", r:false },
+    { id:"e9", text:"I sometimes do things just to look good, not because they are right.", r:true },
+    { id:"e10", text:"I would rather lose something than win it by cheating.", r:false },
+  ],
+  mindset: [
+    { id:"m1", text:"I believe I can get better at almost anything if I practise.", r:false },
+    { id:"m2", text:"When something is hard, I see it as a chance to learn.", r:false },
+    { id:"m3", text:"I believe some people are just naturally talented and I'm not one of them.", r:true },
+    { id:"m4", text:"I enjoy trying new things, even if I might fail at first.", r:false },
+    { id:"m5", text:"I give up quickly on things I'm not immediately good at.", r:true },
+    { id:"m6", text:"Feedback and criticism help me improve — I welcome it.", r:false },
+    { id:"m7", text:"I believe the effort I put in matters more than how naturally talented I am.", r:false },
+    { id:"m8", text:"I feel threatened when someone is better than me at something.", r:true },
+    { id:"m9", text:"I think technology like AI is an exciting opportunity, not a scary threat.", r:false },
+    { id:"m10", text:"I adapt quickly when plans change unexpectedly.", r:false },
+  ],
+};
+
+// ─── CAREERS DATABASE ─────────────────────────────────────────────────────────
+const CAREERS = [
+  { id:"doctor", title:"Doctor / Surgeon", emoji:"🏥", sector:"Healthcare", why:"You love helping people and have strong logical thinking.", riasec:{I:90,S:80,R:30,A:20,E:30,C:50}, traits:{thinking:70,feelings:75,grit:85,ethics:90}, aiRisk:8, description:"Diagnose and treat illness, perform surgery, and care for patients.", salary:"₹8–50L/year", path:"MBBS (5.5 years) → Medical specialisation → Practice" },
+  { id:"nurse", title:"Nurse", emoji:"💊", sector:"Healthcare", why:"You are caring, calm under pressure, and love helping others.", riasec:{S:95,I:55,R:35,C:50}, traits:{feelings:90,ethics:85,grit:80}, aiRisk:7, description:"Provide hands-on patient care, emotional support, and coordinate treatment.", salary:"₹3–12L/year", path:"BSc Nursing (4 years) → NCLEX/Nursing license → Specialise" },
+  { id:"teacher", title:"Teacher / Educator", emoji:"📚", sector:"Education", why:"You love explaining things and seeing others grow.", riasec:{S:90,A:50,I:55,C:45}, traits:{feelings:85,ethics:80,mindset:75}, aiRisk:6, description:"Plan lessons, inspire students, and shape the next generation.", salary:"₹3–15L/year", path:"B.Ed or subject degree → CTET/TET → Teaching position" },
+  { id:"engineer", title:"Engineer (Software/Civil/Mechanical)", emoji:"⚙️", sector:"Technology", why:"Your logical thinking and love of building things make you a natural.", riasec:{R:75,I:85,C:55}, traits:{thinking:85,grit:70,mindset:80}, aiRisk:5, description:"Design, build, and solve problems using science and mathematics.", salary:"₹5–40L/year", path:"B.Tech/BE (4 years) → JEE / GATE → Specialise" },
+  { id:"psychologist", title:"Psychologist / Counsellor", emoji:"🧠", sector:"Mental Health", why:"You understand feelings deeply and people trust you naturally.", riasec:{S:95,I:70,A:40}, traits:{feelings:90,ethics:90,people:85}, aiRisk:8, description:"Help people understand their emotions and overcome mental health challenges.", salary:"₹4–20L/year", path:"BA/BSc Psychology → MA/MSc → RCI License" },
+  { id:"entrepreneur", title:"Entrepreneur", emoji:"🚀", sector:"Business", why:"You love leading, taking risks, and making things happen.", riasec:{E:90,A:55,I:50}, traits:{grit:95,mindset:90,feelings:70}, aiRisk:7, description:"Start and grow your own business, creating jobs and solving problems.", salary:"Variable — unlimited potential", path:"Any degree → Build skills → Start small → Scale up" },
+  { id:"artist", title:"Artist / Designer / Filmmaker", emoji:"🎨", sector:"Creative", why:"Your creativity and unique way of seeing the world is your superpower.", riasec:{A:95,E:50,I:35}, traits:{mindset:80,grit:75}, aiRisk:5, description:"Create art, designs, films, or digital content that moves and inspires people.", salary:"₹2–25L/year", path:"BFA / Design degree → Portfolio → Freelance or studio" },
+  { id:"lawyer", title:"Lawyer / Judge", emoji:"⚖️", sector:"Law", why:"Your strong sense of fairness and logical thinking make you excellent at this.", riasec:{E:75,I:65,S:55,C:65}, traits:{thinking:85,ethics:95,people:80}, aiRisk:5, description:"Represent clients, argue cases, and uphold justice in society.", salary:"₹4–30L/year", path:"BA LLB (5 years) / LLB (3 years) → CLAT → Bar Council enrollment" },
+  { id:"chef", title:"Chef / Culinary Artist", emoji:"👨‍🍳", sector:"Hospitality", why:"Your creativity and love of making things others enjoy shines here.", riasec:{R:70,A:75,E:50}, traits:{grit:80,mindset:75}, aiRisk:8, description:"Create dishes, manage kitchens, and bring joy through food.", salary:"₹2–20L/year", path:"Culinary school / Hotel Management → Apprenticeship → Head chef" },
+  { id:"scientist", title:"Scientist / Researcher", emoji:"🔬", sector:"Science", why:"Your curiosity, logical mind, and love of discovering how things work.", riasec:{I:95,R:55,C:60}, traits:{thinking:90,grit:85,mindset:90}, aiRisk:6, description:"Conduct experiments, discover new knowledge, and push the boundaries of what we know.", salary:"₹4–25L/year", path:"BSc → MSc → PhD → Research institution or university" },
+  { id:"social_worker", title:"Social Worker", emoji:"🤝", sector:"Social Services", why:"You care deeply about fairness and helping people in need.", riasec:{S:95,E:40,C:40}, traits:{feelings:90,ethics:90,people:85}, aiRisk:9, description:"Support vulnerable individuals, families, and communities to improve their lives.", salary:"₹2–10L/year", path:"BSW / MSW degree → Field work → NGO or Government" },
+  { id:"physiotherapist", title:"Physiotherapist", emoji:"🏃", sector:"Healthcare", why:"You love helping people recover and enjoy physical, hands-on work.", riasec:{S:85,R:55,I:55}, traits:{feelings:80,grit:75,ethics:80}, aiRisk:9, description:"Help patients recover movement and manage pain through physical rehabilitation.", salary:"₹3–15L/year", path:"BPT (4.5 years) → Internship → AIPT registration" },
+  { id:"coder", title:"Software Developer / App Builder", emoji:"💻", sector:"Technology", why:"Your logical thinking, creativity, and love of problem-solving fit perfectly.", riasec:{I:85,R:50,A:55}, traits:{thinking:85,grit:75,mindset:90}, aiRisk:4, description:"Build the apps, websites, and software systems the world runs on.", salary:"₹4–40L/year", path:"CS degree or bootcamp → Portfolio → Tech company or freelance" },
+  { id:"vet", title:"Veterinarian", emoji:"🐾", sector:"Animal Healthcare", why:"You love animals and have the care and intelligence to help them.", riasec:{R:60,I:75,S:65}, traits:{thinking:80,ethics:85,grit:80}, aiRisk:9, description:"Diagnose and treat illness and injuries in animals across all species.", salary:"₹3–15L/year", path:"BVSc (5.5 years) → VCI registration → Specialise" },
+  { id:"architect", title:"Architect", emoji:"🏛️", sector:"Design", why:"Your spatial thinking, creativity, and attention to detail are perfect here.", riasec:{A:80,R:60,I:65,C:55}, traits:{thinking:80,grit:75}, aiRisk:6, description:"Design buildings and spaces that are beautiful, functional, and safe.", salary:"₹4–25L/year", path:"B.Arch (5 years) → COA registration → Firm or practice" },
+  { id:"journalist", title:"Journalist / Writer", emoji:"✍️", sector:"Media", why:"Your curiosity, communication skills, and sense of justice make you a natural.", riasec:{A:75,E:60,I:65,S:50}, traits:{ethics:85,grit:80,mindset:75}, aiRisk:5, description:"Investigate stories, inform the public, and hold power to account.", salary:"₹2–15L/year", path:"BA Journalism / Mass Comm → Internships → Publication or broadcast" },
+  { id:"military", title:"Military / Defence Officer", emoji:"🎖️", sector:"Defence", why:"Your grit, ethics, leadership, and calm under pressure are exceptional.", riasec:{R:80,E:75,S:55}, traits:{grit:95,ethics:95,people:80}, aiRisk:9, description:"Lead soldiers, protect the nation, and serve with honour.", salary:"₹6–20L/year + allowances", path:"NDA (after Class 12) / CDS (after graduation) → Training → Commission" },
+  { id:"financial_advisor", title:"Financial Advisor / CA", emoji:"💰", sector:"Finance", why:"Your logical thinking, integrity, and care for people's security are valuable here.", riasec:{C:80,I:65,E:60,S:55}, traits:{thinking:80,ethics:92,grit:80}, aiRisk:5, description:"Help people and businesses manage money, investments, and financial planning.", salary:"₹4–30L/year", path:"B.Com / CA Foundation → CA Intermediate → CA Final → Practice" },
+  { id:"personal_trainer", title:"Personal Trainer / Sports Coach", emoji:"🏋️", sector:"Wellness", why:"You love physical activity and helping others reach their best.", riasec:{R:60,S:80,E:55}, traits:{feelings:75,grit:85,people:80}, aiRisk:9, description:"Design fitness plans and motivate clients to achieve their health goals.", salary:"₹2–15L/year", path:"Sports degree / NASM or ACE certification → Coaching experience" },
+  { id:"diplomat", title:"Diplomat / IAS / IFS Officer", emoji:"🌏", sector:"Government", why:"Your intelligence, ethical strength, people skills, and big-picture thinking stand out.", riasec:{E:80,I:65,S:70,C:60}, traits:{thinking:90,ethics:95,feelings:80,grit:90}, aiRisk:9, description:"Represent your country, shape public policy, and lead national development.", salary:"₹6–25L/year + perks", path:"Any graduation → UPSC Civil Services exam → Training → Posting" },
 ];
 
 // ─── SCORING ──────────────────────────────────────────────────────────────────
-const scoreMCQ=(items,a)=>{ let c=0; items.forEach(i=>{ if(a[i.id]===i.correct)c++; }); return Math.round(c/items.length*100); };
-const scoreLik=(items,a)=>{ let t=0,n=0; items.forEach(i=>{ const v=a[i.id]; if(v===undefined)return; t+=i.reverse?(6-v):v; n++; }); return n?Math.round(t/(n*5)*100):50; };
-const scoreMBTI=(items,a)=>{ const c={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0}; items.forEach(i=>{ const v=a[i.id]; if(v===undefined)return; const [l1,l2]=i.dichotomy.split(""); v===0?c[l1]++:c[l2]++; }); return { type:(c.E>=c.I?"E":"I")+(c.S>=c.N?"S":"N")+(c.T>=c.F?"T":"F")+(c.J>=c.P?"J":"P"), scores:c }; };
-const scoreRIA=(items,a)=>{ const s={R:0,I:0,A:0,S:0,E:0,C:0},n={R:0,I:0,A:0,S:0,E:0,C:0}; items.forEach(i=>{ const v=a[i.id]; if(v===undefined)return; s[i.category]+=v; n[i.category]++; }); const r={}; Object.keys(s).forEach(k=>{ r[k]=n[k]?Math.round(s[k]/(n[k]*5)*100):50; }); return r; };
-const scoreOCEAN=(items,a)=>{ const t={O:[],C:[],E:[],A:[],N:[]}; items.forEach(i=>{ const v=a[i.id]; if(v===undefined)return; t[i.trait].push(i.reverse?(6-v):v); }); const r={}; Object.keys(t).forEach(k=>{ const arr=t[k]; r[k]=arr.length?Math.round(arr.reduce((x,y)=>x+y,0)/(arr.length*5)*100):50; }); return r; };
-const scoreVals=(items,a)=>{ const r={}; items.forEach(i=>{ const v=a[i.id]; if(v===undefined)return; if(!r[i.tag]||v>r[i.tag])r[i.tag]=v; }); return r; };
-const scoreMI=(items,a)=>{ const d={}; items.forEach(i=>{ if(!d[i.domain])d[i.domain]=[]; const v=a[i.id]; if(v!==undefined)d[i.domain].push(v); }); const r={}; Object.keys(d).forEach(k=>{ const arr=d[k]; r[k]=arr.length?Math.round(arr.reduce((x,y)=>x+y,0)/(arr.length*5)*100):50; }); return r; };
-const scoreMixed=(items,a)=>{ let t=0,n=0; items.forEach(i=>{ const v=a[i.id]; if(v===undefined)return; t+=i.type==="scenario"?i.scores[v]/4*5:(i.reverse?(6-v):v); n++; }); return n?Math.round(t/(n*5)*100):50; };
-function computeAll(aa){ return { cognitive:scoreMCQ(COGNITIVE_ITEMS,aa.cognitive||{}), eq:scoreLik(EQ_ITEMS,aa.eq||{}), mbti:scoreMBTI(MBTI_ITEMS,aa.mbti||{}), riasec:scoreRIA(RIASEC_ITEMS,aa.riasec||{}), ocean:scoreOCEAN(OCEAN_ITEMS,aa.ocean||{}), values:scoreVals(VALUES_ITEMS,aa.values||{}), mi:scoreMI(MI_ITEMS,aa.mi||{}), grit:scoreLik(GRIT_ITEMS,aa.grit||{}), conflict:scoreMixed(CONFLICT_ITEMS,aa.conflict||{}), ethics:scoreMixed(ETHICS_ITEMS,aa.ethics||{}), mindset:scoreLik(MINDSET_ITEMS,aa.mindset||{}) }; }
-
-// ─── CAREER MATCHING ──────────────────────────────────────────────────────────
-function cosine(a,b){ const k=Object.keys(a); let d=0,ma=0,mb=0; k.forEach(k=>{ d+=a[k]*b[k]; ma+=a[k]**2; mb+=b[k]**2; }); return ma&&mb?d/(Math.sqrt(ma)*Math.sqrt(mb)):0; }
-function matchCareers(sc, profile={}){ 
-  const {riasec,ocean,cognitive,eq,grit,ethics,mindset,values}=sc; 
-  const topVals=Object.entries(values).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]); 
-  return CAREERS.map(c=>{ 
-    const rs=cosine(riasec,c.riasec)*100, os=cosine(ocean,c.ocean)*100; 
-    const cg=Math.max(0,100-Math.abs(cognitive-c.cognitive)*1.5); 
-    const eq2=Math.max(0,100-Math.abs(eq-c.eq)*1.5); 
-    const gr=Math.max(0,100-Math.abs(grit-c.grit)*1.5); 
-    const et=Math.max(0,100-Math.abs(ethics-c.integrity)*1.5); 
-    const ms=Math.max(0,100-Math.abs(mindset-c.adaptability)*1.5); 
-    const vm=c.values.filter(v=>topVals.includes(v)).length/Math.max(c.values.length,1)*100; 
-    const baseMatch=rs*0.25+os*0.20+cg*0.10+eq2*0.15+gr*0.08+et*0.07+ms*0.07+vm*0.08;
-    // Apply demographic feasibility multiplier
-    const feasibility = profile.age ? transitionFeasibility(c, profile) : 1.0;
-    const match=Math.round(Math.min(99, baseMatch * feasibility)); 
-    const fit=Math.round(Math.min(99, match*0.7+c.aiResilience*0.3)); 
-    return {...c,matchScore:match,overallFit:fit,riasecSim:Math.round(rs),oceanSim:Math.round(os),valuesMatch:Math.round(vm)}; 
-  }).sort((a,b)=>b.overallFit-a.overallFit).slice(0,10); 
+function scoreAll(ans) {
+  const scores = {};
+  // Thinking — MCQ
+  const thQ = QUESTIONS.thinking;
+  let thC = 0;
+  thQ.forEach(q => { if (ans.thinking?.[q.id] === q.correct) thC++; });
+  scores.thinking = Math.round(thC / thQ.length * 100);
+  // Agree/disagree modules
+  ["feelings","grit","people","ethics","mindset","strengths"].forEach(mod => {
+    const qs = QUESTIONS[mod]; let t = 0, n = 0;
+    qs.forEach(q => { const v = ans[mod]?.[q.id]; if (v === undefined) return; t += q.r ? (6-v) : v; n++; });
+    scores[mod] = n ? Math.round(t / (n*5) * 100) : 50;
+  });
+  // Personality (MBTI-style forced choice)
+  const pA = {EI:{E:0,I:0}, JP:{J:0,P:0}, SN:{S:0,N:0}, TF:{T:0,F:0}};
+  const pMap = {p1:"EI",p2:"JP",p3:"SN",p4:"TF",p5:"JP",p6:"EI",p7:"JP",p8:"SN",p9:"TF",p10:"JP"};
+  const pOpt = {p1:["E","I"],p2:["J","P"],p3:["S","N"],p4:["T","F"],p5:["J","P"],p6:["E","I"],p7:["J","P"],p8:["S","N"],p9:["T","F"],p10:["J","P"]};
+  QUESTIONS.personality.forEach(q => {
+    const v = ans.personality?.[q.id];
+    if (v === undefined) return;
+    const dim = pMap[q.id]; const letters = pOpt[q.id];
+    if (dim && letters) pA[dim][letters[v]]++;
+  });
+  scores.mbti = (pA.EI.E >= pA.EI.I ? "E" : "I") + (pA.SN.S >= pA.SN.N ? "S" : "N") + (pA.TF.T >= pA.TF.F ? "T" : "F") + (pA.JP.J >= pA.JP.P ? "J" : "P");
+  // Interests (RIASEC-style rate 1-5)
+  const rMap = {i1:"R",i2:"I",i3:"A",i4:"S",i5:"E",i6:"C",i7:"R",i8:"I",i9:"R",i10:"I"};
+  const rS = {R:0,I:0,A:0,S:0,E:0,C:0}, rN = {R:0,I:0,A:0,S:0,E:0,C:0};
+  QUESTIONS.interests.forEach(q => { const v = ans.interests?.[q.id]; if (!v) return; rS[rMap[q.id]] += v; rN[rMap[q.id]]++; });
+  scores.riasec = {};
+  Object.keys(rS).forEach(k => { scores.riasec[k] = rN[k] ? Math.round(rS[k]/rN[k]/5*100) : 50; });
+  // Values (rate 1-5)
+  const vMap = {v1:"helping",v2:"stability",v3:"autonomy",v4:"creativity",v5:"money",v6:"learning",v7:"innovation",v8:"teamwork",v9:"justice",v10:"tangible"};
+  scores.values = {};
+  QUESTIONS.values.forEach(q => { const v = ans.values?.[q.id]; if (v) scores.values[vMap[q.id]] = v; });
+  // Strengths — dominant intelligences
+  const siS = {}, siN = {};
+  QUESTIONS.strengths.forEach(q => { const v = ans.strengths?.[q.id]; if (!v) return; siS[q.dom] = (siS[q.dom]||0)+v; siN[q.dom] = (siN[q.dom]||0)+1; });
+  scores.intelligences = {};
+  Object.keys(siS).forEach(k => { scores.intelligences[k] = Math.round(siS[k]/siN[k]/5*100); });
+  return scores;
 }
 
-function getGaps(career,sc){ const g=[]; if(sc.cognitive<career.cognitive-10) g.push({area:"Cognitive / Analytical Thinking",gap:career.cognitive-sc.cognitive,priority:"High"}); if(sc.eq<career.eq-10) g.push({area:"Emotional Intelligence & People Skills",gap:career.eq-sc.eq,priority:"High"}); if(sc.grit<career.grit-10) g.push({area:"Grit & Long-Term Perseverance",gap:career.grit-sc.grit,priority:"Medium"}); if(sc.ethics<career.integrity-10) g.push({area:"Integrity & Ethical Decision-Making",gap:career.integrity-sc.ethics,priority:"High"}); if(sc.mindset<career.adaptability-10) g.push({area:"Growth Mindset & Adaptability",gap:career.adaptability-sc.mindset,priority:"Medium"}); return g; }
+function matchCareers(scores) {
+  return CAREERS.map(c => {
+    let match = 0, wt = 0;
+    Object.entries(c.traits).forEach(([k,req]) => {
+      const got = scores[k] || 50;
+      const diff = Math.max(0, 100 - Math.abs(got - req) * 1.2);
+      match += diff; wt++;
+    });
+    const riasecBoost = c.riasec ? Object.entries(c.riasec).reduce((s,[k,req]) => {
+      return s + Math.max(0, 100 - Math.abs((scores.riasec?.[k]||50) - req) * 0.8);
+    }, 0) / Object.keys(c.riasec).length : 50;
+    const base = wt ? (match/wt * 0.65 + riasecBoost * 0.35) : riasecBoost;
+    const fit = Math.round(Math.min(98, base * 0.75 + c.aiRisk * 0.25 * 10));
+    return { ...c, fit };
+  }).sort((a,b) => b.fit - a.fit).slice(0, 10);
+}
 
-// ─── CLAUDE API — FULLY PERSONALISED AI NARRATIVE ────────────────────────────
-async function generateAINarrative(userName, career, scores, rank, gaps, strengths, profile) {
-  const topRIASEC = Object.entries(scores.riasec).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k).join("");
-  const topMI = Object.entries(scores.mi).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>k).join(" and ");
-  const topVals = Object.entries(scores.values).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k.replace(/_/g," ")).join(", ");
-  const ageGroup = getAgeGroup(profile.age);
-  const expLevel = getExperienceLevel(profile.experience);
-  const salBand = getSalaryBand(profile.salary);
-  const cityCtx = getCityContext(profile.city);
+// ─── PERSONALITY SUMMARY HELPERS ─────────────────────────────────────────────
+function getPersonalityProfile(scores) {
+  const mbti = scores.mbti || "ISFJ";
+  const mbtiNames = {
+    INTJ:"The Architect — Strategic visionary",INTP:"The Thinker — Logical analyser",
+    ENTJ:"The Commander — Natural leader",ENTP:"The Debater — Creative problem solver",
+    INFJ:"The Advocate — Idealistic helper",INFP:"The Mediator — Empathetic dreamer",
+    ENFJ:"The Protagonist — Charismatic inspirer",ENFP:"The Campaigner — Enthusiastic connector",
+    ISTJ:"The Inspector — Reliable organiser",ISFJ:"The Defender — Caring protector",
+    ESTJ:"The Executive — Practical organiser",ESFJ:"The Consul — Warm team player",
+    ISTP:"The Craftsperson — Skilled problem solver",ISFP:"The Adventurer — Gentle artist",
+    ESTP:"The Entrepreneur — Bold action taker",ESFP:"The Performer — Spontaneous entertainer",
+  };
+  const topRI = Object.entries(scores.riasec||{}).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>k);
+  const riNames = {R:"Hands-on Builder",I:"Curious Investigator",A:"Creative Artist",S:"People Helper",E:"Bold Leader",C:"Organised Planner"};
+  const topIntelligences = Object.entries(scores.intelligences||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  return { mbti, mbtiName: mbtiNames[mbti]||"Unique Individual", topRI, riNames, topIntelligences };
+}
 
-  // Build life-stage context string
-  const lifeStage = {
-    student:      "As a student or fresh graduate just starting out",
-    earlyCareer:  "As someone in the early stages of your career",
-    midCareer:    "As a mid-career professional with solid experience",
-    seniorCareer: "As a senior professional with deep experience"
-  }[ageGroup];
+function getStrengthsAndWeaknesses(scores) {
+  const traits = [
+    {k:"thinking", label:"Logical Thinking", desc:"How well you solve problems, puzzles, and logical challenges"},
+    {k:"feelings", label:"Emotional Intelligence", desc:"Understanding your own and other people's feelings"},
+    {k:"grit", label:"Determination & Grit", desc:"Your ability to keep going when things get hard"},
+    {k:"people", label:"Patience & Conflict", desc:"How calm and patient you are under pressure"},
+    {k:"ethics", label:"Integrity & Honesty", desc:"How ethical and trustworthy you are"},
+    {k:"mindset", label:"Growth Mindset", desc:"Belief that you can improve through effort"},
+  ];
+  const withScores = traits.map(t => ({ ...t, score: scores[t.k] || 50 }));
+  const strengths = withScores.filter(t => t.score >= 68).sort((a,b) => b.score-a.score);
+  const weaknesses = withScores.filter(t => t.score < 52).sort((a,b) => a.score-b.score);
+  const moderate = withScores.filter(t => t.score >= 52 && t.score < 68);
+  return { strengths, weaknesses, moderate, all: withScores };
+}
 
-  const salaryContext = {
-    entry: `Your current salary of ₹${profile.salary}/month is typical for this stage — this career offers strong earnings growth potential.`,
-    mid:   `Your current compensation of ₹${profile.salary}/month shows you've built real market value — this career can take you significantly higher.`,
-    upper: `You're earning ₹${profile.salary}/month, which means you need a career move that protects or grows your lifestyle — this analysis factors that in.`,
-    senior:`At ₹${profile.salary}/month, you're at a senior level — this career recommendation accounts for realistic transition timelines that protect your income.`
-  }[salBand];
+// ─── REPORT GENERATOR ────────────────────────────────────────────────────────
+async function generateAIReport(name, profile, scores, topCareers, swData, age, city, experience) {
+  const { mbti, mbtiName, topRI, riNames, topIntelligences } = profile;
+  const topVals = Object.entries(scores.values||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k.replace(/_/g," ")).join(", ");
 
-  const pronoun = profile.sex?.toLowerCase()==="female" ? "her" : profile.sex?.toLowerCase()==="male" ? "his" : "their";
-  const pronoun2 = profile.sex?.toLowerCase()==="female" ? "she" : profile.sex?.toLowerCase()==="male" ? "he" : "they";
+  const prompt = `You are Dr. Colonel JC John, a warm, encouraging career counsellor writing a personalised report for ${name}, who is ${age || "a young person"} from ${city || "India"} with ${experience || "0"} years of work experience.
 
-  const prompt = `You are Dr. Colonel JC John, a world-class career counsellor and I-O psychologist at MENTORIA / OverSimplify.in. You are writing a deeply personalised Training Need Analysis (TNA) report for a client.
-
-CLIENT PROFILE:
-- Name: ${userName}
-- Age: ${profile.age} years old
-- Sex: ${profile.sex}
-- Present Designation: ${profile.designation || "Not specified"}
-- Years of Work Experience: ${profile.experience} years
-- Current Monthly Salary: ₹${profile.salary} (or equivalent)
-- City: ${profile.city}
-- Life Stage: ${lifeStage}
-- Career Stage: ${expLevel} level professional
-
-PSYCHOMETRIC SCORES:
-- Cognitive IQ: ${scores.cognitive}/100
-- Emotional Intelligence (EQ): ${scores.eq}/100
-- MBTI Type: ${scores.mbti.type}
-- RIASEC Holland Code (top 3): ${topRIASEC}
-- Big Five OCEAN: Openness ${scores.ocean.O}, Conscientiousness ${scores.ocean.C}, Extraversion ${scores.ocean.E}, Agreeableness ${scores.ocean.A}, Neuroticism ${scores.ocean.N}
+Their psychometric results:
+- Personality Type: ${mbti} (${mbtiName})
+- Strongest Interests: ${topRI.map(r=>riNames[r]).join(" and ")}
+- Top 3 Intelligences: ${topIntelligences.map(([k,v])=>k+" ("+v+"%)" ).join(", ")}
+- Key Values: ${topVals}
+- Thinking/IQ Score: ${scores.thinking}/100
+- Emotional Intelligence: ${scores.feelings}/100
 - Grit & Perseverance: ${scores.grit}/100
 - Integrity & Ethics: ${scores.ethics}/100
-- Conflict Management & Patience: ${scores.conflict}/100
-- Growth Mindset & Adaptability: ${scores.mindset}/100
-- Top Values: ${topVals}
-- Dominant Intelligences: ${topMI}
+- Growth Mindset: ${scores.mindset}/100
+- Patience/Conflict: ${scores.people}/100
 
-RECOMMENDED CAREER: ${career.title} (Rank #${rank} match — ${career.overallFit}% overall fit)
-SECTOR: ${career.sector}
-AI DISRUPTION RESILIENCE: ${career.aiResilience}/100
+Strengths: ${swData.strengths.map(s=>s.label+" ("+s.score+"/100)").join(", ")||"All areas developing"}
+Areas to grow: ${swData.weaknesses.map(w=>w.label+" ("+w.score+"/100)").join(", ")||"No critical weaknesses"}
 
-STRENGTHS IDENTIFIED: ${strengths.length > 0 ? strengths.join(", ") : "Broad developmental potential across multiple areas"}
-DEVELOPMENT GAPS: ${gaps.length > 0 ? gaps.map(g => `${g.area} (${g.priority} priority, gap: ${g.gap} points)`).join("; ") : "No critical gaps — strong alignment with career requirements"}
+Top 3 recommended careers: ${topCareers.slice(0,3).map((c,i)=>`#${i+1} ${c.title} (${c.fit}% fit)`).join(", ")}
 
-LOCATION CONTEXT: ${cityCtx.note}
-SALARY CONTEXT: ${salaryContext}
+Write a warm, detailed, honest report in 5 sections. Use simple English that a 13-year-old can understand. Write directly to ${name} using "you" and "your".
 
-Write a warm, insightful, deeply personalised TNA narrative in exactly 5 paragraphs. Address ${userName} directly ("you", "your") throughout:
+SECTION 1 — WHO YOU ARE (4–5 sentences):
+Describe ${name}'s personality in a warm, specific way. Mention their MBTI type, whether they are introverted or extroverted, how they make decisions, and what makes them unique. Make it feel like you truly see them.
 
-PARAGRAPH 1 — WHY THIS CAREER IS RIGHT FOR YOU NOW:
-Explain specifically why ${career.title} is the right career for ${userName} at age ${profile.age} with ${profile.experience} years of experience${profile.designation ? ` as ${profile.designation}` : ""}. Reference their MBTI type (${scores.mbti.type}), their top RIASEC interests (${topRIASEC}), and how their current life stage makes this timing ideal or what needs to happen first.
+SECTION 2 — YOUR SUPERPOWERS (4–5 sentences):
+Describe their biggest strengths with specific examples of what this means in real life. Be enthusiastic and specific. Reference their actual scores and intelligences. Make them feel proud of who they are.
 
-PARAGRAPH 2 — YOUR NATURAL STRENGTHS FOR THIS CAREER:
-Be specific about what ${userName} already brings to this career. Reference actual scores. Tell them what these numbers mean in real day-to-day terms for someone working in ${career.title}. Make it feel like you see them clearly.
+SECTION 3 — AREAS TO GROW (3–4 sentences):
+Honestly but kindly explain their weaker areas. Frame every weakness as something they CAN develop. Be encouraging, not harsh. Give one practical tip for each area.
 
-PARAGRAPH 3 — YOUR PERSONALISED DEVELOPMENT PLAN (TNA):
-Address the gaps honestly but positively. Given ${userName}'s age (${profile.age}), experience level (${profile.experience} years), and current role${profile.designation ? ` as ${profile.designation}` : ""}, give specific, practical and time-bound development actions — not generic advice. Consider what's realistic given where they are in life.
+SECTION 4 — YOUR PERFECT CAREER MATCH (5–6 sentences):
+Explain why their top 3 careers match them specifically. Reference their personality, interests, strengths. Make it feel personal and exciting. Include what their daily life could look like in their top career.
 
-PARAGRAPH 4 — SALARY & CAREER TRAJECTORY:
-Discuss realistic earning potential for ${career.title} in ${profile.city} or globally, specifically contextualised against ${userName}'s current salary of ₹${profile.salary}/month. Give a concrete 3–5 year income trajectory and what achieving it requires. Be honest and motivating.
+SECTION 5 — YOUR 3-STEP ACTION PLAN (numbered list, plain language):
+Give 3 specific, actionable steps ${name} can take RIGHT NOW — this month — to start moving toward their best career. Make each step practical, specific, and encouraging.
 
-PARAGRAPH 5 — YOUR 90-DAY ACTION PLAN:
-Give ${userName} 3 specific actions to take in the next 90 days, numbered, grounded in their actual profile, experience level, city, and current role. Make each action concrete enough to start tomorrow morning.
+Keep the whole report under 500 words. Use short sentences. No jargon. Write like a kind mentor who believes in this person completely.`;
 
-Be warm, expert, encouraging but honest. Every sentence should feel written for this specific person — not a template. Total length: 380–450 words.`;
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1200,
-      messages: [{ role: "user", content: prompt }]
-    })
+  const response = await fetch("/api/claude", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1200,messages:[{role:"user",content:prompt}]})
   });
   const data = await response.json();
-  return data.content?.map(b => b.text || "").join("") || "Unable to generate narrative. Please try again.";
+  return data.content?.map(b=>b.text||"").join("")||"Report could not be generated. Please try again.";
 }
 
-// ─── RADAR CHART ──────────────────────────────────────────────────────────────
-function RadarChart({data,size=200}){ const keys=Object.keys(data),vals=keys.map(k=>data[k]/100),n=keys.length,cx=size/2,cy=size/2,r=size/2-28,ang=keys.map((_,i)=>(Math.PI*2*i/n)-Math.PI/2); const pt=(v,i)=>({x:cx+r*v*Math.cos(ang[i]),y:cy+r*v*Math.sin(ang[i])}); return (<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{overflow:"visible"}}>{[.2,.4,.6,.8,1].map(lv=>(<polygon key={lv} points={keys.map((_,i)=>`${pt(lv,i).x},${pt(lv,i).y}`).join(" ")} fill="none" stroke="#2D3478" strokeWidth="0.5" opacity="0.5"/>))}{keys.map((_,i)=><line key={i} x1={cx} y1={cy} x2={pt(1,i).x} y2={pt(1,i).y} stroke="#2D3478" strokeWidth="0.5" opacity="0.4"/>)}<polygon points={vals.map((_,i)=>`${pt(vals[i],i).x},${pt(vals[i],i).y}`).join(" ")} fill="#D4A24E" fillOpacity="0.25" stroke="#D4A24E" strokeWidth="2"/>{vals.map((v,i)=><circle key={i} cx={pt(v,i).x} cy={pt(v,i).y} r="4" fill="#D4A24E"/>)}{keys.map((k,i)=>{ const lp=pt(1.22,i); return <text key={k} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="#C5C8E0" fontWeight="600">{k}</text>; })}</svg>); }
+// ─── MINI COMPONENTS ─────────────────────────────────────────────────────────
+const AGREE = ["Strongly Disagree","Disagree","Not Sure","Agree","Strongly Agree"];
+const RATE = ["Not at all","A little","Sometimes","Often","Absolutely love it!"];
 
-// ─── QUESTION COMPONENTS ──────────────────────────────────────────────────────
-const LL=["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"];
-const IL=["Not Important","Slightly Important","Moderately Important","Important","Very Important"];
-const RL=["Strongly Dislike","Dislike","Neutral","Like","Strongly Like"];
-function LikertQ({item,val,onChange,labels=LL}){ return (<div style={{marginBottom:16}}><p style={{color:"#F7F5F0",fontSize:15,lineHeight:1.6,marginBottom:10}}>{item.text}</p><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{[1,2,3,4,5].map(v=>(<button key={v} onClick={()=>onChange(v)} style={{flex:1,minWidth:80,padding:"8px 4px",borderRadius:8,border:"2px solid",borderColor:val===v?"#D4A24E":"#2D3478",background:val===v?"#D4A24E22":"transparent",color:val===v?"#D4A24E":"#8A8FAF",fontSize:11,cursor:"pointer",lineHeight:1.3,transition:"all .15s"}}>{labels[v-1]}</button>))}</div></div>); }
-function MCQQ({item,val,onChange}){ return (<div style={{marginBottom:16}}><p style={{color:"#F7F5F0",fontSize:15,lineHeight:1.6,marginBottom:10}}>{item.text}</p><div style={{display:"flex",flexDirection:"column",gap:8}}>{item.options.map((opt,i)=>(<button key={i} onClick={()=>onChange(i)} style={{padding:"10px 16px",borderRadius:8,border:"2px solid",textAlign:"left",borderColor:val===i?"#D4A24E":"#2D3478",background:val===i?"#D4A24E22":"#12153A",color:val===i?"#D4A24E":"#C5C8E0",fontSize:14,cursor:"pointer",transition:"all .15s"}}><span style={{color:"#8A8FAF",marginRight:8}}>{String.fromCharCode(65+i)}.</span>{opt}</button>))}</div></div>); }
-function ForceQ({item,val,onChange}){ return (<div style={{marginBottom:16}}><p style={{color:"#8A8FAF",fontSize:12,marginBottom:8}}>Choose the option that feels MORE like you:</p>{[item.a,item.b].map((opt,i)=>(<button key={i} onClick={()=>onChange(i)} style={{display:"block",width:"100%",padding:"12px 16px",borderRadius:8,border:"2px solid",textAlign:"left",marginBottom:8,borderColor:val===i?"#D4A24E":"#2D3478",background:val===i?"#D4A24E22":"#12153A",color:val===i?"#D4A24E":"#C5C8E0",fontSize:14,cursor:"pointer",transition:"all .15s"}}><span style={{color:"#8A8FAF",marginRight:8}}>{i===0?"A":"B"}.</span>{opt}</button>))}</div>); }
+function AgreeQ({q, val, onChange}) {
+  return (
+    <div style={{marginBottom:20}}>
+      <p style={{fontSize:16,color:"#1E293B",lineHeight:1.6,marginBottom:12,fontWeight:500}}>{q.text}</p>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+        {[1,2,3,4,5].map(v=>(
+          <button key={v} onClick={()=>onChange(v)} style={{flex:1,minWidth:80,padding:"9px 6px",borderRadius:10,border:"2px solid",borderColor:val===v?"#6C63FF":"#E2E8F0",background:val===v?"#EEF2FF":"#F8FAFC",color:val===v?"#4338CA":"#64748B",fontSize:11,cursor:"pointer",transition:"all .15s",lineHeight:1.3,fontWeight:val===v?700:400}}>
+            {AGREE[v-1]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-const SC={Healthcare:"#7A8B6F",Technology:"#4A6FA5","Technology/Policy":"#5A7F95",Education:"#9B7A4E",Business:"#8B4E9B",Wellness:"#4E8B7A",Legal:"#9B4E4E","Social Services":"#4E7A9B",Hospitality:"#9B7A4E",Construction:"#8B6F4E",Finance:"#5A8B4E",Government:"#4E5A8B","Government/Policy":"#5E6A9B","Design/Agriculture":"#7A8B4E","Design/Construction":"#6E4E8B"};
-const gc=s=>SC[s]||"#D4A24E";
-const BG={background:"#0D1025",minHeight:"100vh",fontFamily:"'Segoe UI',system-ui,sans-serif",color:"#F7F5F0"};
+function RateQ({q, val, onChange}) {
+  return (
+    <div style={{marginBottom:20}}>
+      <p style={{fontSize:16,color:"#1E293B",lineHeight:1.6,marginBottom:12,fontWeight:500}}>{q.text}</p>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+        {[1,2,3,4,5].map(v=>(
+          <button key={v} onClick={()=>onChange(v)} style={{flex:1,minWidth:72,padding:"9px 4px",borderRadius:10,border:"2px solid",borderColor:val===v?"#F59E0B":"#E2E8F0",background:val===v?"#FFFBEB":"#F8FAFC",color:val===v?"#B45309":"#64748B",fontSize:11,cursor:"pointer",transition:"all .15s",lineHeight:1.3,fontWeight:val===v?700:400}}>
+            {RATE[v-1]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ChoiceQ({q, val, onChange}) {
+  return (
+    <div style={{marginBottom:20}}>
+      <p style={{fontSize:13,color:"#64748B",marginBottom:10}}>Pick the one that sounds MORE like you:</p>
+      {[q.a,q.b].map((opt,i)=>(
+        <button key={i} onClick={()=>onChange(i)} style={{display:"block",width:"100%",textAlign:"left",padding:"13px 16px",borderRadius:12,border:"2px solid",marginBottom:8,borderColor:val===i?"#6C63FF":"#E2E8F0",background:val===i?"#EEF2FF":"#FAFAFA",color:val===i?"#4338CA":"#374151",fontSize:15,cursor:"pointer",transition:"all .15s",fontWeight:val===i?600:400}}>
+          <span style={{color:val===i?"#6C63FF":"#94A3B8",marginRight:10,fontWeight:700}}>{i===0?"A":"B"}</span>{opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MCQQ({q, val, onChange}) {
+  return (
+    <div style={{marginBottom:20}}>
+      <p style={{fontSize:16,color:"#1E293B",fontWeight:500,lineHeight:1.6,marginBottom:12}}>{q.text}</p>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {q.options.map((opt,i)=>(
+          <button key={i} onClick={()=>onChange(i)} style={{padding:"12px 16px",borderRadius:12,border:"2px solid",textAlign:"left",borderColor:val===i?"#6C63FF":"#E2E8F0",background:val===i?"#EEF2FF":"#FAFAFA",color:val===i?"#4338CA":"#374151",fontSize:15,cursor:"pointer",transition:"all .15s",fontWeight:val===i?600:400}}>
+            <span style={{color:val===i?"#6C63FF":"#94A3B8",marginRight:10,fontWeight:700}}>{String.fromCharCode(65+i)}.</span>{opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScoreBar({label, score, color="#6C63FF"}) {
+  const level = score >= 75 ? "🌟 Strong" : score >= 55 ? "👍 Good" : score >= 40 ? "📈 Growing" : "🌱 Developing";
+  return (
+    <div style={{marginBottom:14}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+        <span style={{fontSize:13,fontWeight:600,color:"#374151"}}>{label}</span>
+        <span style={{fontSize:12,color:color,fontWeight:700}}>{level} — {score}/100</span>
+      </div>
+      <div style={{background:"#E2E8F0",borderRadius:8,height:10,overflow:"hidden"}}>
+        <div style={{width:`${score}%`,height:"100%",background:`linear-gradient(90deg,${color}99,${color})`,borderRadius:8,transition:"width 1s ease"}}/>
+      </div>
+    </div>
+  );
+}
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
-export default function App() {
-  const [screen,setScreen]=useState("intro");
-  const [modIdx,setModIdx]=useState(0);
-  const [itmIdx,setItmIdx]=useState(0);
-  const [allAns,setAllAns]=useState({});
-  const [userName,setUserName]=useState("");
-  const [nameInput,setNameInput]=useState("");
-  const [scores,setScores]=useState(null);
-  const [topCareers,setTopCareers]=useState([]);
-  const [selCareer,setSelCareer]=useState(null);
-  const [activeTab,setActiveTab]=useState("ai");
-  const [aiNarratives,setAiNarratives]=useState({});
-  const [aiLoading,setAiLoading]=useState(false);
-  // ── DEMOGRAPHIC PROFILE ──
-  const [profile,setProfile]=useState({ age:"", sex:"", experience:"", designation:"", salary:"", city:"" });
-  const profileComplete = profile.age && profile.sex && profile.experience && profile.salary && profile.city;
+export default function CareerCompassAI() {
+  const [screen, setScreen] = useState("intro");    // intro | briefing | test | loading | results
+  const [modIdx, setModIdx] = useState(0);
+  const [itmIdx, setItmIdx] = useState(0);
+  const [showIntro, setShowIntro] = useState(true); // show module intro card
+  const [allAns, setAllAns] = useState({});
+  const [profile, setProfile] = useState({name:"",age:"",sex:"",experience:"",designation:"",salary:"",city:""});
+  const [nameInput, setNameInput] = useState("");
+  const [scores, setScores] = useState(null);
+  const [topCareers, setTopCareers] = useState([]);
+  const [selCareer, setSelCareer] = useState(null);
+  const [aiReport, setAiReport] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const reportRef = useRef();
 
-  const curMod=MODULES[modIdx];
-  const totalItems=MODULES.reduce((a,m)=>a+m.items.length,0);
-  const doneItems=MODULES.slice(0,modIdx).reduce((a,m)=>a+m.items.length,0)+itmIdx;
-  const pct=Math.round(doneItems/totalItems*100);
-  const modAns=allAns[curMod?.key]||{};
-  const curItem=curMod?.items[itmIdx];
-  const curAns=curItem?modAns[curItem.id]:undefined;
+  const curMod = MODULES[modIdx];
+  const curQs = QUESTIONS[curMod?.key] || [];
+  const curQ = curQs[itmIdx];
+  const curAns = allAns[curMod?.key]?.[curQ?.id];
+  const totalQ = MODULES.reduce((s,m)=>s+(QUESTIONS[m.key]?.length||0),0);
+  const doneQ = MODULES.slice(0,modIdx).reduce((s,m)=>s+(QUESTIONS[m.key]?.length||0),0)+(showIntro?0:itmIdx);
+  const pct = Math.round(doneQ/totalQ*100);
+  const profileOk = profile.name.trim() && profile.age;
 
-  function setP(k,v){ setProfile(p=>({...p,[k]:v})); }
-  function setAns(v){ setAllAns(p=>({...p,[curMod.key]:{...(p[curMod.key]||{}),[curItem.id]:v}})); }
-  function goNext(){ if(itmIdx<curMod.items.length-1){setItmIdx(i=>i+1);}else if(modIdx<MODULES.length-1){setModIdx(m=>m+1);setItmIdx(0);}else{const sc=computeAll(allAns);const tc=matchCareers(sc,profile);setScores(sc);setTopCareers(tc);setScreen("results");} }
-  function goPrev(){ if(itmIdx>0)setItmIdx(i=>i-1); else if(modIdx>0){const pm=MODULES[modIdx-1];setModIdx(m=>m-1);setItmIdx(pm.items.length-1);} }
-  function start(){ if(!nameInput.trim()||!profileComplete)return; setUserName(nameInput.trim());setScreen("test");setModIdx(0);setItmIdx(0);setAllAns({}); }
-  function reset(){ setScreen("intro");setAllAns({});setModIdx(0);setItmIdx(0);setSelCareer(null);setNameInput("");setScores(null);setAiNarratives({});setTopCareers([]);setProfile({age:"",sex:"",experience:"",designation:"",salary:"",city:""}); }
+  function setP(k,v){setProfile(p=>({...p,[k]:v}));}
+  function setAns(v){setAllAns(p=>({...p,[curMod.key]:{...(p[curMod.key]||{}),[curQ.id]:v}}));}
 
-  const loadAINarrative = useCallback(async (career, idx) => {
-    if(aiNarratives[career.id]||aiLoading) return;
-    setAiLoading(true);
+  function startModule(){setShowIntro(false);}
+
+  function goNext(){
+    if(itmIdx < curQs.length-1){ setItmIdx(i=>i+1); }
+    else if(modIdx < MODULES.length-1){ setModIdx(m=>m+1); setItmIdx(0); setShowIntro(true); }
+    else { finishTest(); }
+  }
+  function goPrev(){
+    if(!showIntro && itmIdx>0){ setItmIdx(i=>i-1); }
+    else if(!showIntro && itmIdx===0){ setShowIntro(true); }
+    else if(showIntro && modIdx>0){ setModIdx(m=>m-1); setItmIdx((QUESTIONS[MODULES[modIdx-1].key]?.length||1)-1); setShowIntro(false); }
+  }
+
+  async function finishTest(){
+    setScreen("loading");
+    const sc = scoreAll(allAns);
+    const tc = matchCareers(sc);
+    setScores(sc); setTopCareers(tc);
+    // Generate AI report immediately
     try {
-      const gaps=getGaps(career,scores);
-      const strengths=[];
-      if(scores.eq>=career.eq-5)strengths.push("Emotional Intelligence");
-      if(scores.cognitive>=career.cognitive-5)strengths.push("Cognitive Ability");
-      if(scores.grit>=career.grit-5)strengths.push("Grit & Perseverance");
-      if(scores.ethics>=career.integrity-5)strengths.push("Integrity & Ethics");
-      if(scores.mindset>=career.adaptability-5)strengths.push("Mindset & Adaptability");
-      if(scores.conflict>=70)strengths.push("Conflict Management");
-      const narrative=await generateAINarrative(userName,career,scores,idx+1,gaps,strengths,profile);
-      setAiNarratives(prev=>({...prev,[career.id]:narrative}));
-    } catch(e) {
-      setAiNarratives(prev=>({...prev,[career.id]:"⚠️ Could not generate AI narrative. Please check your connection and try again."}));
-    }
-    setAiLoading(false);
-  },[scores,userName,aiNarratives,aiLoading,profile]);
+      const pp = getPersonalityProfile(sc);
+      const sw = getStrengthsAndWeaknesses(sc);
+      const report = await generateAIReport(profile.name||nameInput, pp, sc, tc, sw, profile.age, profile.city, profile.experience);
+      setAiReport(report);
+    } catch(e){ setAiReport(""); }
+    setScreen("results");
+  }
 
-  const getLabels=()=>{ const mt=curMod?.type; return mt==="importance"?IL:mt==="interest"?RL:LL; };
-  const isAnswered=curAns!==undefined;
-  const isLast=modIdx===MODULES.length-1&&itmIdx===curMod?.items.length-1;
+  function start(){
+    if(!nameInput.trim()) return;
+    setProfile(p=>({...p,name:nameInput.trim()}));
+    setScreen("briefing");
+  }
 
-  // ── INTRO ──────────────────────────────────────────────────────────────────
-  const inp = {width:"100%",padding:"11px 14px",borderRadius:9,border:"2px solid #2D3478",background:"#0D1025",color:"#F7F5F0",fontSize:14,outline:"none",boxSizing:"border-box"};
-  const lbl = {color:"#8A8FAF",fontSize:12,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.8px",display:"block",marginBottom:5};
+  function startTest(){ setScreen("test"); setModIdx(0); setItmIdx(0); setShowIntro(true); setAllAns({}); }
+
+  function reset(){ setScreen("intro"); setAllAns({}); setModIdx(0); setItmIdx(0); setScores(null); setTopCareers([]); setAiReport(""); setSelCareer(null); setNameInput(""); setProfile({name:"",age:"",sex:"",experience:"",designation:"",salary:"",city:""}); setEmailSent(false); }
+
+  // ── DOWNLOAD PDF (print) ──────────────────────────────────────────────────
+  function downloadReport(){
+    window.print();
+  }
+
+  // ── SIMULATE EMAIL SEND ──────────────────────────────────────────────────
+  function sendEmail(){
+    if(!email.includes("@")){ alert("Please enter a valid email address."); return; }
+    setEmailSent(true);
+    setTimeout(()=>setEmailSent(false),4000);
+  }
+
+  // ─── SHARED STYLES ────────────────────────────────────────────────────────
+  const BG = {background:"#F1F5F9",minHeight:"100vh",fontFamily:"'Segoe UI',system-ui,sans-serif",color:"#1E293B"};
+  const inp = {width:"100%",padding:"11px 14px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#1E293B",fontSize:14,outline:"none",boxSizing:"border-box",transition:"border-color .2s",fontFamily:"inherit"};
+
+  // ─── INTRO SCREEN ────────────────────────────────────────────────────────
   if(screen==="intro") return (
     <div style={{...BG,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div style={{maxWidth:580,width:"100%"}}>
-        {/* Header */}
-        <div style={{textAlign:"center",marginBottom:24}}>
-          <div style={{fontSize:48,marginBottom:8}}>🧭</div>
-          <h1 style={{fontSize:28,fontWeight:800,color:"#F7F5F0",margin:"0 0 4px",letterSpacing:"-0.5px"}}>CareerCompass<span style={{color:"#D4A24E"}}>™</span></h1>
-          <p style={{color:"#D4A24E",fontSize:13,margin:"0 0 2px",fontWeight:600}}>by OverSimplify.in · MENTORIA</p>
-          <div style={{display:"inline-block",background:"#D4A24E22",border:"1px solid #D4A24E44",borderRadius:20,padding:"3px 12px",margin:"6px 0"}}>
-            <span style={{color:"#D4A24E",fontSize:11,fontWeight:700}}>✨ AI-Powered · Fully Personalised · Claude AI Reports</span>
-          </div>
-        </div>
-
-        {/* Profile Form Card */}
-        <div style={{background:"#12153A",borderRadius:16,padding:22,marginBottom:14,border:"1px solid #2D3478"}}>
-          <p style={{color:"#D4A24E",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 16px"}}>👤 Your Profile — Required for Personalised Report</p>
-
-          {/* Name */}
-          <div style={{marginBottom:14}}>
-            <label style={lbl}>Full Name *</label>
-            <input value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder="e.g. Priya Sharma" style={inp}/>
+      <div style={{maxWidth:540,width:"100%"}}>
+        <div style={{background:"#fff",borderRadius:20,padding:28,boxShadow:"0 4px 24px rgba(0,0,0,0.07)",marginBottom:16}}>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <div style={{fontSize:52,marginBottom:8}}>🧭</div>
+            <h1 style={{fontSize:26,fontWeight:800,color:"#1E293B",margin:"0 0 6px"}}>CareerCompass™</h1>
+            <p style={{color:"#6C63FF",fontSize:13,fontWeight:700,margin:"0 0 4px"}}>by OverSimplify.in · MENTORIA</p>
+            <p style={{color:"#64748B",fontSize:14,lineHeight:1.65,marginTop:10}}>Find the careers that are <strong>perfect for YOU</strong> — based on your personality, strengths, and interests. Takes about <strong>20 minutes</strong>. 100 fun questions. No wrong answers!</p>
           </div>
 
-          {/* Age + Sex row */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-            <div>
-              <label style={lbl}>Age *</label>
-              <input type="number" min="15" max="70" value={profile.age} onChange={e=>setP("age",e.target.value)} placeholder="e.g. 28" style={inp}/>
-            </div>
-            <div>
-              <label style={lbl}>Sex *</label>
-              <select value={profile.sex} onChange={e=>setP("sex",e.target.value)} style={{...inp,appearance:"none"}}>
-                <option value="">Select...</option>
-                <option>Male</option>
-                <option>Female</option>
-                <option>Prefer not to say</option>
-              </select>
+          <div style={{background:"#F8FAFC",borderRadius:12,padding:16,marginBottom:20}}>
+            <p style={{fontSize:12,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,margin:"0 0 12px"}}>What you'll discover</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {[["🎯","Your perfect Top 10 careers"],["🧠","Your personality type"],["💪","Your strengths & talents"],["📊","Your full AI-written report"],["📥","Download your report"],["📧","Email it to anyone"]].map(([icon,text])=>(
+                <div key={text} style={{display:"flex",gap:8,alignItems:"center",fontSize:13,color:"#374151"}}><span>{icon}</span><span>{text}</span></div>
+              ))}
             </div>
           </div>
 
-          {/* Experience + Designation row */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-            <div>
-              <label style={lbl}>Years of Work Experience *</label>
-              <input type="number" min="0" max="50" value={profile.experience} onChange={e=>setP("experience",e.target.value)} placeholder="e.g. 5" style={inp}/>
-            </div>
-            <div>
-              <label style={lbl}>Present Designation</label>
-              <input value={profile.designation} onChange={e=>setP("designation",e.target.value)} placeholder="e.g. Senior Manager" style={inp}/>
-            </div>
+          {/* Quick profile */}
+          <div style={{marginBottom:16}}>
+            <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Your Name *</label>
+            <input value={nameInput} onChange={e=>setNameInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&start()} placeholder="Type your full name here..." style={inp}/>
           </div>
 
-          {/* Salary + City row */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:6}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
             <div>
-              <label style={lbl}>Present Monthly Salary (₹) *</label>
-              <input type="number" min="0" value={profile.salary} onChange={e=>setP("salary",e.target.value)} placeholder="e.g. 75000" style={inp}/>
-              <p style={{color:"#5A5F7F",fontSize:10,margin:"3px 0 0"}}>Enter 0 if student / not working</p>
+              <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Age *</label>
+              <input type="number" min="12" max="70" value={profile.age} onChange={e=>setP("age",e.target.value)} placeholder="e.g. 16" style={inp}/>
             </div>
             <div>
-              <label style={lbl}>City *</label>
+              <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>City</label>
               <input value={profile.city} onChange={e=>setP("city",e.target.value)} placeholder="e.g. Bangalore" style={inp}/>
             </div>
           </div>
-        </div>
 
-        {/* Stats strip */}
-        <div style={{background:"#12153A",borderRadius:12,padding:12,marginBottom:14,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
-          {[["📋",`${totalItems} Questions`],["⏱","45–60 Min"],["🏆","Top 10 Careers"],["🤖","AI TNA Report"],["📝","Exam Prep"],["🔒","100% Private"]].map(([icon,label])=>(<div key={label} style={{textAlign:"center",minWidth:70}}><div style={{fontSize:18}}>{icon}</div><div style={{color:"#8A8FAF",fontSize:10,marginTop:1}}>{label}</div></div>))}
-        </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+            <div>
+              <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>I am a</label>
+              <select value={profile.sex} onChange={e=>setP("sex",e.target.value)} style={{...inp,appearance:"none"}}>
+                <option value="">Select...</option><option>Student</option><option>Working Professional</option><option>Parent (filling for child)</option>
+              </select>
+            </div>
+            <div>
+              <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Work Experience (years)</label>
+              <input type="number" min="0" max="50" value={profile.experience} onChange={e=>setP("experience",e.target.value)} placeholder="0 if student" style={inp}/>
+            </div>
+          </div>
 
-        <button onClick={start} disabled={!nameInput.trim()||!profileComplete} style={{width:"100%",padding:14,borderRadius:10,border:"none",background:(nameInput.trim()&&profileComplete)?"#D4A24E":"#2D3478",color:(nameInput.trim()&&profileComplete)?"#0D1025":"#5A5F7F",fontSize:16,fontWeight:800,cursor:(nameInput.trim()&&profileComplete)?"pointer":"not-allowed",transition:"all .2s",marginBottom:8}}>
-          {(!nameInput.trim()||!profileComplete) ? "Complete all required fields (*) to begin" : `Begin Assessment, ${nameInput.split(" ")[0]} →`}
-        </button>
-        <p style={{color:"#5A5F7F",fontSize:10,textAlign:"center",margin:0}}>Your profile data is used only to personalise your report. Nothing is stored or uploaded.</p>
+          <button onClick={start} disabled={!nameInput.trim()} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:nameInput.trim()?"#6C63FF":"#E2E8F0",color:nameInput.trim()?"#fff":"#94A3B8",fontSize:16,fontWeight:800,cursor:nameInput.trim()?"pointer":"not-allowed",transition:"all .2s"}}>
+            {nameInput.trim()?`Let's go, ${nameInput.split(" ")[0]}! 🚀`:"Enter your name to begin"}
+          </button>
+          <p style={{color:"#94A3B8",fontSize:11,textAlign:"center",marginTop:10}}>100% private · Your results stay on your device · No data uploaded</p>
+        </div>
       </div>
     </div>
   );
 
-  // ── TEST ───────────────────────────────────────────────────────────────────
+  // ─── BRIEFING — EXPLAIN ALL 10 MODULES BEFORE TEST ───────────────────────
+  if(screen==="briefing") return (
+    <div style={{...BG,padding:"20px 16px"}}>
+      <div style={{maxWidth:620,margin:"0 auto"}}>
+        <div style={{background:"#fff",borderRadius:20,padding:24,boxShadow:"0 4px 24px rgba(0,0,0,0.07)",marginBottom:16}}>
+          <div style={{textAlign:"center",marginBottom:22}}>
+            <div style={{fontSize:36,marginBottom:8}}>📋</div>
+            <h2 style={{fontSize:22,fontWeight:800,color:"#1E293B",margin:"0 0 8px"}}>Here's what we'll measure</h2>
+            <p style={{color:"#64748B",fontSize:14,lineHeight:1.65}}>The test has <strong>10 short sections</strong>. Each one takes 2–3 minutes. Here's a quick overview of what each section is about — so there are no surprises!</p>
+          </div>
+
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:22}}>
+            {MODULES.map((m,i)=>(
+              <div key={m.key} style={{background:"#F8FAFC",borderRadius:12,padding:"13px 16px",display:"flex",gap:14,alignItems:"flex-start",border:`1.5px solid ${m.color}22`}}>
+                <div style={{width:40,height:40,borderRadius:10,background:m.light,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{m.emoji}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                    <span style={{background:m.color,color:"#fff",fontSize:10,fontWeight:800,padding:"2px 7px",borderRadius:10}}>{i+1}</span>
+                    <span style={{fontSize:14,fontWeight:700,color:"#1E293B"}}>{m.label}</span>
+                    <span style={{fontSize:11,color:"#94A3B8",marginLeft:"auto"}}>⏱ {m.time}</span>
+                  </div>
+                  <p style={{fontSize:12,color:"#374151",margin:"0 0 3px",fontWeight:500}}>{m.what}</p>
+                  <p style={{fontSize:12,color:"#64748B",margin:0,lineHeight:1.5}}>{m.why}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{background:"#EEF2FF",borderRadius:12,padding:14,marginBottom:18,borderLeft:"4px solid #6C63FF"}}>
+            <p style={{fontSize:13,color:"#4338CA",margin:0,lineHeight:1.65}}><strong>💡 Important tip:</strong> Answer every question <strong>honestly</strong> — there are no right or wrong answers here. The more honest you are, the more accurate and useful your results will be. This is about <em>you</em>, not about what you think sounds good!</p>
+          </div>
+
+          <button onClick={startTest} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:"#6C63FF",color:"#fff",fontSize:16,fontWeight:800,cursor:"pointer"}}>
+            I'm ready — Start the Test! 🎯
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── LOADING ─────────────────────────────────────────────────────────────
+  if(screen==="loading") return (
+    <div style={{...BG,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center",padding:40}}>
+        <div style={{fontSize:52,marginBottom:16,animation:"spin 2s linear infinite",display:"inline-block"}}>⚙️</div>
+        <h2 style={{fontSize:22,fontWeight:800,color:"#1E293B",margin:"0 0 8px"}}>Analysing your answers...</h2>
+        <p style={{color:"#64748B",fontSize:15}}>Our AI is writing your personalised report.<br/>This takes about 20 seconds. ☕</p>
+        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      </div>
+    </div>
+  );
+
+  // ─── TEST SCREEN ──────────────────────────────────────────────────────────
   if(screen==="test") {
-    const modType=curMod.type; const isScenario=curItem?.type==="scenario";
+    const isAnswered = curAns !== undefined;
+    const isLast = modIdx===MODULES.length-1 && itmIdx===curQs.length-1;
+
+    // MODULE INTRO CARD
+    if(showIntro) return (
+      <div style={{...BG,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{maxWidth:500,width:"100%"}}>
+          {/* Overall progress */}
+          <div style={{background:"#fff",borderRadius:12,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",gap:10}}>
+            <div style={{flex:1,background:"#E2E8F0",borderRadius:6,height:8,overflow:"hidden"}}>
+              <div style={{width:`${pct}%`,height:"100%",background:"#6C63FF",borderRadius:6,transition:"width .3s"}}/>
+            </div>
+            <span style={{color:"#64748B",fontSize:12,whiteSpace:"nowrap"}}>{pct}% done</span>
+          </div>
+
+          <div style={{background:"#fff",borderRadius:20,padding:28,boxShadow:"0 4px 24px rgba(0,0,0,0.07)",textAlign:"center"}}>
+            <div style={{width:72,height:72,borderRadius:18,background:curMod.light,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,margin:"0 auto 16px",border:`2px solid ${curMod.color}33`}}>{curMod.emoji}</div>
+            <div style={{background:curMod.color,color:"#fff",fontSize:11,fontWeight:800,padding:"3px 12px",borderRadius:20,display:"inline-block",marginBottom:10}}>Section {modIdx+1} of {MODULES.length}</div>
+            <h2 style={{fontSize:22,fontWeight:800,color:"#1E293B",margin:"0 0 10px"}}>{curMod.label}</h2>
+            <div style={{background:"#F8FAFC",borderRadius:12,padding:16,marginBottom:10,textAlign:"left"}}>
+              <p style={{fontSize:14,color:"#374151",margin:"0 0 8px",fontWeight:600}}>What this measures:</p>
+              <p style={{fontSize:14,color:"#1E293B",margin:"0 0 12px",lineHeight:1.6}}>{curMod.what}</p>
+              <p style={{fontSize:14,color:"#374151",margin:"0 0 6px",fontWeight:600}}>Why it matters for your career:</p>
+              <p style={{fontSize:14,color:"#1E293B",margin:0,lineHeight:1.6}}>{curMod.why}</p>
+            </div>
+            <p style={{color:"#64748B",fontSize:13,margin:"0 0 18px"}}>⏱ About {curMod.time} · {curQs.length} questions</p>
+            <div style={{display:"flex",gap:10}}>
+              {modIdx>0&&<button onClick={goPrev} style={{padding:"12px 20px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#64748B",fontSize:14,cursor:"pointer"}}>← Back</button>}
+              <button onClick={startModule} style={{flex:1,padding:13,borderRadius:10,border:"none",background:curMod.color,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer"}}>Start this section →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+    // QUESTION
     return (
       <div style={{...BG}}>
-        <div style={{position:"sticky",top:0,zIndex:10,background:"#0D1025",borderBottom:"1px solid #1E2240",padding:"10px 16px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-            <span style={{color:"#D4A24E",fontWeight:700,fontSize:13}}>{curMod.icon} {curMod.label}</span>
-            <span style={{color:"#8A8FAF",fontSize:12}}>{pct}% complete</span>
+        {/* Top bar */}
+        <div style={{background:"#fff",borderBottom:"1px solid #E2E8F0",padding:"10px 16px",position:"sticky",top:0,zIndex:10}}>
+          <div style={{maxWidth:620,margin:"0 auto"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{background:curMod.color,color:"#fff",fontSize:11,padding:"3px 10px",borderRadius:20,fontWeight:700}}>{curMod.emoji} {curMod.label}</span>
+              </div>
+              <span style={{fontSize:12,color:"#64748B"}}>{pct}% complete</span>
+            </div>
+            <div style={{background:"#E2E8F0",borderRadius:6,height:6}}>
+              <div style={{width:`${pct}%`,height:"100%",background:curMod.color,borderRadius:6,transition:"width .3s"}}/>
+            </div>
           </div>
-          <div style={{background:"#1E2240",borderRadius:4,height:4}}><div style={{width:`${pct}%`,height:"100%",background:"#D4A24E",borderRadius:4,transition:"width .3s"}}/></div>
-          <div style={{display:"flex",gap:3,marginTop:6}}>{MODULES.map((m,i)=>(<div key={m.key} style={{flex:1,height:3,borderRadius:2,background:i<modIdx?"#D4A24E":i===modIdx?"#D4A24E88":"#1E2240"}}/>))}</div>
         </div>
-        <div style={{maxWidth:660,margin:"0 auto",padding:"20px 16px"}}>
-          {itmIdx===0&&(<div style={{background:"#12153A",borderRadius:12,padding:"14px 18px",marginBottom:20,borderLeft:"3px solid #D4A24E"}}><p style={{color:"#8A8FAF",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 3px"}}>Section {modIdx+1} of {MODULES.length}</p><h2 style={{color:"#F7F5F0",fontSize:17,margin:"0 0 4px"}}>{curMod.icon} {curMod.label}</h2><p style={{color:"#8A8FAF",fontSize:12,margin:0}}>{curMod.desc}</p></div>)}
-          <p style={{color:"#5A5F7F",fontSize:12,marginBottom:12}}>Q {itmIdx+1} of {curMod.items.length}</p>
-          {(modType==="likert"||modType==="importance"||modType==="interest")&&!isScenario&&<LikertQ item={curItem} val={curAns} onChange={setAns} labels={getLabels()}/>}
-          {modType==="mcq"&&<MCQQ item={curItem} val={curAns} onChange={setAns}/>}
-          {modType==="forcedchoice"&&<ForceQ item={curItem} val={curAns} onChange={setAns}/>}
-          {modType==="mixed"&&(isScenario?<MCQQ item={curItem} val={curAns} onChange={setAns}/>:<LikertQ item={curItem} val={curAns} onChange={setAns}/>)}
-          <div style={{display:"flex",gap:10,marginTop:20}}>
-            <button onClick={goPrev} disabled={modIdx===0&&itmIdx===0} style={{padding:"11px 18px",borderRadius:8,border:"2px solid #2D3478",background:"transparent",color:"#8A8FAF",fontSize:14,cursor:"pointer",opacity:(modIdx===0&&itmIdx===0)?0.3:1}}>← Back</button>
-            <button onClick={goNext} disabled={!isAnswered} style={{flex:1,padding:12,borderRadius:8,border:"none",background:isAnswered?"#D4A24E":"#2D3478",color:isAnswered?"#0D1025":"#5A5F7F",fontSize:15,fontWeight:700,cursor:isAnswered?"pointer":"not-allowed",transition:"all .2s"}}>{isLast?"See My Results 🎯":"Next →"}</button>
+
+        <div style={{maxWidth:620,margin:"0 auto",padding:"20px 16px"}}>
+          <p style={{color:"#94A3B8",fontSize:12,marginBottom:14}}>Question {itmIdx+1} of {curQs.length}</p>
+
+          {curMod.type==="mcq"&&<MCQQ q={curQ} val={curAns} onChange={setAns}/>}
+          {curMod.type==="agree"&&<AgreeQ q={curQ} val={curAns} onChange={setAns}/>}
+          {curMod.type==="choice"&&<ChoiceQ q={curQ} val={curAns} onChange={setAns}/>}
+          {curMod.type==="rate"&&<RateQ q={curQ} val={curAns} onChange={setAns}/>}
+
+          <div style={{display:"flex",gap:10,marginTop:16}}>
+            <button onClick={goPrev} style={{padding:"12px 18px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#64748B",fontSize:14,cursor:"pointer"}}>← Back</button>
+            <button onClick={goNext} disabled={!isAnswered} style={{flex:1,padding:13,borderRadius:10,border:"none",background:isAnswered?curMod.color:"#E2E8F0",color:isAnswered?"#fff":"#94A3B8",fontSize:15,fontWeight:800,cursor:isAnswered?"pointer":"not-allowed",transition:"all .2s"}}>
+              {isLast?"See My Results! 🎉":"Next Question →"}
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── RESULTS ────────────────────────────────────────────────────────────────
+  // ─── RESULTS SCREEN ───────────────────────────────────────────────────────
   if(screen==="results"&&scores) {
-    const mbtiType=scores.mbti.type;
-    const topRIASEC=Object.entries(scores.riasec).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k).join("");
-    const oceanData={"Open":scores.ocean.O,"Consc":scores.ocean.C,"Extro":scores.ocean.E,"Agree":scores.ocean.A,"Stable":100-scores.ocean.N};
+    const pp = getPersonalityProfile(scores);
+    const sw = getStrengthsAndWeaknesses(scores);
+    const firstName = (profile.name||nameInput).split(" ")[0];
 
-    // ── CAREER DETAIL ───────────────────────────────────────────────────────
+    // CAREER DETAIL
     if(selCareer!==null) {
-      const c=topCareers[selCareer];
-      const gaps=getGaps(c,scores);
-      const strengths=[];
-      if(scores.eq>=c.eq-5)strengths.push("Emotional Intelligence");
-      if(scores.cognitive>=c.cognitive-5)strengths.push("Cognitive Ability");
-      if(scores.grit>=c.grit-5)strengths.push("Grit & Perseverance");
-      if(scores.ethics>=c.integrity-5)strengths.push("Integrity & Ethics");
-      if(scores.mindset>=c.adaptability-5)strengths.push("Mindset & Adaptability");
-      if(scores.conflict>=70)strengths.push("Conflict Management");
-
-      const tabs=[{k:"ai",label:"🤖 AI Report"},{k:"tna",label:"📊 Gap Analysis"},{k:"training",label:"🎓 Training"},{k:"exam",label:"📝 Exam Prep"},{k:"resilience",label:"🛡️ AI Resilience"}];
-      const narrative=aiNarratives[c.id];
-
+      const c = topCareers[selCareer];
       return (
-        <div style={{...BG}}>
-          <div style={{background:"#12153A",padding:"12px 16px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid #1E2240",position:"sticky",top:0,zIndex:10}}>
-            <button onClick={()=>setSelCareer(null)} style={{background:"none",border:"none",color:"#D4A24E",cursor:"pointer",fontSize:22,padding:0,lineHeight:1}}>←</button>
-            <div><p style={{color:"#8A8FAF",fontSize:11,margin:0}}>Career #{selCareer+1} · AI-Powered Report</p><h2 style={{color:"#F7F5F0",fontSize:17,margin:0,fontWeight:700}}>{c.title}</h2></div>
-          </div>
+        <div style={{...BG,padding:"16px"}}>
+          <div style={{maxWidth:640,margin:"0 auto"}}>
+            <button onClick={()=>setSelCareer(null)} style={{background:"none",border:"none",color:"#6C63FF",cursor:"pointer",fontSize:15,fontWeight:700,marginBottom:12,padding:0}}>← Back to all careers</button>
+            <div style={{background:"#fff",borderRadius:20,padding:24,boxShadow:"0 4px 20px rgba(0,0,0,0.07)",marginBottom:14}}>
+              <div style={{display:"flex",gap:16,alignItems:"flex-start",marginBottom:16}}>
+                <div style={{fontSize:44}}>{c.emoji}</div>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>{c.sector}</div>
+                  <h2 style={{fontSize:22,fontWeight:800,color:"#1E293B",margin:"0 0 6px"}}>{c.title}</h2>
+                  <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"#EEF2FF",borderRadius:20,padding:"4px 12px"}}>
+                    <span style={{fontSize:18,fontWeight:800,color:"#6C63FF"}}>{c.fit}%</span>
+                    <span style={{fontSize:12,color:"#4338CA",fontWeight:600}}>match for {firstName}</span>
+                  </div>
+                </div>
+              </div>
 
-          <div style={{maxWidth:700,margin:"0 auto",padding:"20px 16px"}}>
-            {/* Score Banner */}
-            <div style={{background:"linear-gradient(135deg,#1B1F3B,#12153A)",borderRadius:14,padding:20,marginBottom:14,textAlign:"center",border:"1px solid #D4A24E44"}}>
-              <div style={{fontSize:58,fontWeight:800,color:"#D4A24E",lineHeight:1}}>{c.overallFit}%</div>
-              <p style={{color:"#8A8FAF",fontSize:12,margin:"6px 0 14px"}}>Overall Fit Score · Psychometric Match + AI Resilience</p>
-              <div style={{display:"flex",justifyContent:"center",gap:20,flexWrap:"wrap"}}>
-                {[["Trait Match",c.matchScore+"%"],["AI Resilience",c.aiResilience+"%"],["RIASEC Fit",c.riasecSim+"%"],["Values Fit",c.valuesMatch+"%"]].map(([l,v])=>(<div key={l} style={{textAlign:"center"}}><div style={{color:"#F7F5F0",fontWeight:800,fontSize:20}}>{v}</div><div style={{color:"#5A5F7F",fontSize:10}}>{l}</div></div>))}
+              <div style={{background:"#F8FAFC",borderRadius:12,padding:14,marginBottom:14}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#374151",margin:"0 0 6px"}}>🎯 Why this career fits you:</p>
+                <p style={{fontSize:14,color:"#1E293B",margin:0,lineHeight:1.65}}>{c.why} Your personality type ({pp.mbti}) and your strongest interests make this a natural fit.</p>
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                <div style={{background:"#ECFDF5",borderRadius:10,padding:12}}>
+                  <p style={{fontSize:11,color:"#065F46",fontWeight:700,textTransform:"uppercase",margin:"0 0 4px"}}>💰 Typical Salary</p>
+                  <p style={{fontSize:14,color:"#1E293B",fontWeight:600,margin:0}}>{c.salary}</p>
+                </div>
+                <div style={{background:"#EEF2FF",borderRadius:10,padding:12}}>
+                  <p style={{fontSize:11,color:"#4338CA",fontWeight:700,textTransform:"uppercase",margin:"0 0 4px"}}>🛡️ Safe from AI?</p>
+                  <p style={{fontSize:14,color:"#1E293B",fontWeight:600,margin:0}}>{c.aiRisk>=7?"✅ Very safe":c.aiRisk>=5?"🟡 Mostly safe":"⚠️ Some risk"} ({c.aiRisk}/10)</p>
+                </div>
+              </div>
+
+              <div style={{background:"#F0FDF4",borderRadius:12,padding:14,marginBottom:14,borderLeft:"4px solid #10B981"}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#065F46",margin:"0 0 6px"}}>🗺️ How to get there (Step by step):</p>
+                <p style={{fontSize:14,color:"#1E293B",margin:0,lineHeight:1.7}}>{c.path}</p>
+              </div>
+
+              <div style={{background:"#F8FAFC",borderRadius:12,padding:14}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#374151",margin:"0 0 6px"}}>📝 What you'll actually do every day:</p>
+                <p style={{fontSize:14,color:"#1E293B",margin:0,lineHeight:1.65}}>{c.description}</p>
               </div>
             </div>
-
-            {/* Strengths */}
-            {strengths.length>0&&(<div style={{background:"#12153A",borderRadius:12,padding:14,marginBottom:12}}><p style={{color:"#7A8B6F",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 8px"}}>✅ Your Strengths for This Career</p><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{strengths.map(s=><span key={s} style={{background:"#7A8B6F22",color:"#7A8B6F",padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:600}}>{s}</span>)}</div></div>)}
-
-            {/* Tabs */}
-            <div style={{display:"flex",gap:5,marginBottom:12,flexWrap:"wrap"}}>
-              {tabs.map(t=>(<button key={t.k} onClick={()=>{ setActiveTab(t.k); if(t.k==="ai"&&!narrative&&!aiLoading) loadAINarrative(c,selCareer); }} style={{flex:1,minWidth:80,padding:"8px 4px",borderRadius:8,border:"2px solid",borderColor:activeTab===t.k?"#D4A24E":"#2D3478",background:activeTab===t.k?"#D4A24E22":"transparent",color:activeTab===t.k?"#D4A24E":"#8A8FAF",fontSize:11,fontWeight:600,cursor:"pointer"}}>{t.label}</button>))}
-            </div>
-
-            {/* AI REPORT TAB */}
-            {activeTab==="ai"&&(
-              <div style={{background:"#12153A",borderRadius:14,padding:18,marginBottom:14}}>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                  <div style={{width:32,height:32,borderRadius:8,background:"#D4A24E22",border:"1px solid #D4A24E44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🤖</div>
-                  <div><p style={{color:"#D4A24E",fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:0}}>AI-Generated TNA Report</p><p style={{color:"#5A5F7F",fontSize:11,margin:0}}>Personalised by Claude AI based on your scores</p></div>
-                </div>
-                {!narrative&&!aiLoading&&(
-                  <div style={{textAlign:"center",padding:"24px 0"}}>
-                    <p style={{color:"#8A8FAF",fontSize:14,marginBottom:16}}>Generate a personalised career analysis written specifically for <strong style={{color:"#F7F5F0"}}>{userName}</strong> based on your actual psychometric profile.</p>
-                    <button onClick={()=>loadAINarrative(c,selCareer)} style={{padding:"12px 28px",borderRadius:10,border:"none",background:"#D4A24E",color:"#0D1025",fontSize:15,fontWeight:800,cursor:"pointer"}}>✨ Generate My AI Report</button>
-                  </div>
-                )}
-                {aiLoading&&!narrative&&(
-                  <div style={{textAlign:"center",padding:"24px 0"}}>
-                    <div style={{fontSize:32,marginBottom:12,animation:"spin 1s linear infinite"}}>⚙️</div>
-                    <p style={{color:"#D4A24E",fontSize:14,fontWeight:600}}>Claude AI is writing your personalised report...</p>
-                    <p style={{color:"#8A8FAF",fontSize:12}}>Analysing your psychometric profile against {c.title} requirements</p>
-                  </div>
-                )}
-                {narrative&&(
-                  <div>
-                    {narrative.split("\n\n").filter(p=>p.trim()).map((para,i)=>(
-                      <div key={i} style={{background:"#0D1025",borderRadius:10,padding:16,marginBottom:10,borderLeft:`3px solid ${i===0?"#D4A24E":i===1?"#7A8B6F":i===2?"#E37B5C":"#4A6FA5"}`}}>
-                        <p style={{color:"#C5C8E0",fontSize:14,lineHeight:1.75,margin:0}}>{para.trim()}</p>
-                      </div>
-                    ))}
-                    <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
-                      <button onClick={()=>{ setAiNarratives(prev=>({...prev,[c.id]:undefined})); setTimeout(()=>loadAINarrative(c,selCareer),100); }} disabled={aiLoading} style={{background:"none",border:"1px solid #2D3478",borderRadius:8,color:"#8A8FAF",fontSize:12,padding:"6px 14px",cursor:"pointer"}}>↻ Regenerate</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* GAP ANALYSIS TAB */}
-            {activeTab==="tna"&&(
-              <div style={{background:"#12153A",borderRadius:14,padding:16,marginBottom:14}}>
-                <p style={{color:"#E37B5C",fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>📊 Development Gap Analysis</p>
-                {gaps.length===0?<p style={{color:"#7A8B6F",fontSize:14,margin:0}}>🎉 Your profile closely matches the requirements. No critical gaps identified!</p>:gaps.map(g=>(<div key={g.area} style={{background:"#0D1025",borderRadius:10,padding:14,marginBottom:10,borderLeft:`3px solid ${g.priority==="High"?"#E37B5C":"#D4A24E"}`}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{color:"#F7F5F0",fontSize:14,fontWeight:600}}>{g.area}</span><span style={{background:g.priority==="High"?"#E37B5C22":"#D4A24E22",color:g.priority==="High"?"#E37B5C":"#D4A24E",fontSize:10,padding:"2px 8px",borderRadius:10,fontWeight:600}}>{g.priority}</span></div><div style={{background:"#1E2240",borderRadius:4,height:5,marginBottom:5}}><div style={{width:`${Math.min(100,g.gap)}%`,height:"100%",background:g.priority==="High"?"#E37B5C":"#D4A24E",borderRadius:4}}/></div><p style={{color:"#8A8FAF",fontSize:12,margin:0}}>Gap of ~{g.gap} points — targeted development recommended</p></div>))}
-              </div>
-            )}
-
-            {/* TRAINING TAB */}
-            {activeTab==="training"&&(
-              <div style={{background:"#12153A",borderRadius:14,padding:16,marginBottom:14}}>
-                <p style={{color:"#D4A24E",fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>🎓 Recommended Training Pathway</p>
-                {c.training.map((step,i)=>(<div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",padding:"12px 0",borderBottom:i<c.training.length-1?"1px solid #1E2240":"none"}}><div style={{width:28,height:28,borderRadius:"50%",background:"#D4A24E",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,fontWeight:800,color:"#0D1025"}}>{i+1}</div><p style={{color:"#C5C8E0",fontSize:14,lineHeight:1.5,margin:0}}>{step}</p></div>))}
-              </div>
-            )}
-
-            {/* EXAM PREP TAB */}
-            {activeTab==="exam"&&(
-              <div style={{background:"#12153A",borderRadius:14,padding:16,marginBottom:14}}>
-                <p style={{color:"#7A8B6F",fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>📝 Entrance Exam & Certification Prep</p>
-                {c.examPrep.map((step,i)=>(<div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",padding:"12px 0",borderBottom:i<c.examPrep.length-1?"1px solid #1E2240":"none"}}><div style={{width:28,height:28,borderRadius:8,background:"#7A8B6F22",border:"2px solid #7A8B6F",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,fontWeight:800,color:"#7A8B6F"}}>✓</div><p style={{color:"#C5C8E0",fontSize:14,lineHeight:1.5,margin:0}}>{step}</p></div>))}
-              </div>
-            )}
-
-            {/* RESILIENCE TAB */}
-            {activeTab==="resilience"&&(
-              <div style={{background:"#12153A",borderRadius:14,padding:16,marginBottom:14}}>
-                <p style={{color:"#4A6FA5",fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>🛡️ Why This Career Resists AI Disruption</p>
-                <div style={{background:"#0D1025",borderRadius:10,padding:16,marginBottom:12}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                    <div style={{fontSize:32,fontWeight:800,color:"#D4A24E"}}>{c.aiResilience}%</div>
-                    <div><div style={{color:"#F7F5F0",fontSize:14,fontWeight:700}}>AI Resilience Score</div><div style={{color:"#8A8FAF",fontSize:11}}>Higher = more protected from automation</div></div>
-                  </div>
-                  <div style={{background:"#1E2240",borderRadius:4,height:8,marginBottom:12}}><div style={{width:`${c.aiResilience}%`,height:"100%",background:c.aiResilience>=80?"#7A8B6F":c.aiResilience>=60?"#D4A24E":"#E37B5C",borderRadius:4}}/></div>
-                  <p style={{color:"#C5C8E0",fontSize:14,lineHeight:1.6,margin:0}}>{c.resilienceReason}</p>
-                </div>
-                <p style={{color:"#5A5F7F",fontSize:11,margin:0}}>⚠️ AI resilience scores are estimates based on task automation research. Actual disruption rates vary by region, specialization, and technology adoption pace.</p>
-              </div>
-            )}
-
-            <button onClick={()=>setSelCareer(null)} style={{width:"100%",padding:12,borderRadius:10,border:"2px solid #2D3478",background:"transparent",color:"#D4A24E",fontSize:14,fontWeight:700,cursor:"pointer",marginBottom:8}}>← Back to All 10 Careers</button>
+            <button onClick={()=>setSelCareer(null)} style={{width:"100%",padding:13,borderRadius:12,border:"1.5px solid #6C63FF",background:"transparent",color:"#6C63FF",fontSize:15,fontWeight:700,cursor:"pointer"}}>← Back to All 10 Careers</button>
           </div>
         </div>
       );
     }
 
-    // ── RESULTS OVERVIEW ─────────────────────────────────────────────────────
-    const cityCtx = getCityContext(profile.city);
+    // MAIN RESULTS PAGE
     return (
-      <div style={{...BG}}>
-        <div style={{background:"linear-gradient(135deg,#12153A,#1B1F3B)",padding:"24px 20px",textAlign:"center",borderBottom:"1px solid #2D3478"}}>
-          <div style={{fontSize:36,marginBottom:6}}>🧭</div>
-          <h1 style={{fontSize:22,fontWeight:800,color:"#F7F5F0",margin:"0 0 4px"}}>CareerCompass™ Report</h1>
-          <p style={{color:"#D4A24E",fontSize:16,fontWeight:700,margin:"0 0 2px"}}>{userName}</p>
-          <p style={{color:"#8A8FAF",fontSize:12,margin:"0 0 8px"}}>{new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</p>
-          {/* Demographic strip */}
-          <div style={{display:"flex",justifyContent:"center",gap:6,flexWrap:"wrap",marginTop:8}}>
-            {[`🎂 Age ${profile.age}`,`${profile.sex==="Female"?"👩":"👨"} ${profile.sex}`,`💼 ${profile.experience}yr exp`,profile.designation&&`🏷️ ${profile.designation}`,`💰 ₹${Number(profile.salary).toLocaleString("en-IN")}/mo`,`📍 ${profile.city}`].filter(Boolean).map(tag=>(
-              <span key={tag} style={{background:"#1E2240",borderRadius:20,padding:"3px 10px",fontSize:11,color:"#C5C8E0"}}>{tag}</span>
-            ))}
-          </div>
-          <div style={{display:"inline-block",background:"#D4A24E22",border:"1px solid #D4A24E44",borderRadius:20,padding:"3px 12px",marginTop:10}}>
-            <span style={{color:"#D4A24E",fontSize:11,fontWeight:700}}>✨ Tap any career for your AI-generated personalised report</span>
-          </div>
-        </div>
+      <div style={{...BG,padding:"16px"}} ref={reportRef}>
+        <style>{`
+          @media print {
+            body{background:#fff!important}
+            button,.no-print{display:none!important}
+            .print-page{break-inside:avoid}
+          }
+          @keyframes fadein{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+          .fadein{animation:fadein .5s ease forwards}
+        `}</style>
 
-        <div style={{maxWidth:700,margin:"0 auto",padding:"20px 16px"}}>
-          {/* Profile Summary */}
-          <div style={{background:"#12153A",borderRadius:14,padding:18,marginBottom:14}}>
-            <p style={{color:"#D4A24E",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>📋 Your Psychometric Profile</p>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              {[["🧠 IQ Score",`${scores.cognitive}/100`,scores.cognitive>=70?"Above Average":scores.cognitive>=50?"Average":"Developing"],["💛 EQ Score",`${scores.eq}/100`,scores.eq>=75?"High EQ":scores.eq>=55?"Moderate":"Developing"],["🔮 MBTI Type",mbtiType,"Personality archetype"],["🎯 RIASEC",topRIASEC,"Top 3 interest themes"],["🔥 Grit",`${scores.grit}/100`,scores.grit>=70?"High Perseverance":"Moderate"],["🛡️ Integrity",`${scores.ethics}/100`,scores.ethics>=75?"Strong Ethics":"Moderate"],["🚀 Mindset",`${scores.mindset}/100`,scores.mindset>=70?"Growth Oriented":"Developing"],["⚖️ Conflict",`${scores.conflict}/100`,scores.conflict>=70?"Strong Mgmt":"Developing"]].map(([lbl,val,desc])=>(<div key={lbl} style={{background:"#0D1025",borderRadius:10,padding:12}}><p style={{color:"#8A8FAF",fontSize:11,margin:"0 0 3px"}}>{lbl}</p><p style={{color:"#F7F5F0",fontSize:20,fontWeight:800,margin:"0 0 2px"}}>{val}</p><p style={{color:"#5A5F7F",fontSize:11,margin:0}}>{desc}</p></div>))}
+        <div style={{maxWidth:680,margin:"0 auto"}}>
+          {/* HEADER */}
+          <div className="fadein print-page" style={{background:"linear-gradient(135deg,#6C63FF,#4338CA)",borderRadius:20,padding:24,marginBottom:14,color:"#fff",textAlign:"center"}}>
+            <div style={{fontSize:40,marginBottom:8}}>🧭</div>
+            <h1 style={{fontSize:24,fontWeight:800,margin:"0 0 4px"}}>Your CareerCompass™ Report</h1>
+            <p style={{fontSize:16,fontWeight:700,margin:"0 0 4px",opacity:0.9}}>{profile.name||nameInput}</p>
+            <p style={{fontSize:12,opacity:0.7,margin:0}}>{new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}{profile.age?` · Age ${profile.age}`:"" }{profile.city?` · ${profile.city}`:""}</p>
+          </div>
+
+          {/* PERSONALITY TYPE */}
+          <div className="fadein print-page" style={{background:"#fff",borderRadius:16,padding:22,marginBottom:14,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+            <p style={{fontSize:11,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,margin:"0 0 10px"}}>🔮 Your Personality Type</p>
+            <div style={{display:"flex",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
+              <div style={{background:"linear-gradient(135deg,#EEF2FF,#E0E7FF)",borderRadius:12,padding:"14px 18px",textAlign:"center",minWidth:100}}>
+                <div style={{fontSize:32,fontWeight:900,color:"#4338CA",fontFamily:"Georgia,serif"}}>{pp.mbti}</div>
+                <div style={{fontSize:11,color:"#6366F1",fontWeight:600}}>Your Type</div>
+              </div>
+              <div style={{flex:1,minWidth:200}}>
+                <p style={{fontSize:16,fontWeight:700,color:"#1E293B",margin:"0 0 4px"}}>{pp.mbtiName}</p>
+                <p style={{fontSize:13,color:"#64748B",margin:"0 0 10px",lineHeight:1.6}}>
+                  {pp.mbti[0]==="E"?"You get energy from being around people and love social situations.":"You recharge by having quiet time to yourself and prefer deeper one-on-one conversations."}
+                  {" "}{pp.mbti[2]==="T"?"You make decisions using logic and fairness.":"You make decisions based on feelings and how things affect people."}
+                  {" "}{pp.mbti[3]==="J"?"You like having a clear plan and organised structure.":"You prefer staying flexible and keeping your options open."}
+                </p>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {pp.topRI.map(r=><span key={r} style={{background:"#F0FDF4",color:"#065F46",fontSize:11,padding:"3px 10px",borderRadius:20,fontWeight:600,border:"1px solid #BBF7D0"}}>🎯 {pp.riNames[r]}</span>)}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Radar Charts */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-            <div style={{background:"#12153A",borderRadius:14,padding:14,textAlign:"center"}}><p style={{color:"#D4A24E",fontSize:11,fontWeight:700,textTransform:"uppercase",margin:"0 0 8px"}}>OCEAN Profile</p><RadarChart data={oceanData} size={180}/></div>
-            <div style={{background:"#12153A",borderRadius:14,padding:14,textAlign:"center"}}><p style={{color:"#D4A24E",fontSize:11,fontWeight:700,textTransform:"uppercase",margin:"0 0 8px"}}>RIASEC Profile</p><RadarChart data={scores.riasec} size={180}/></div>
+          {/* SCORES OVERVIEW */}
+          <div className="fadein print-page" style={{background:"#fff",borderRadius:16,padding:22,marginBottom:14,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+            <p style={{fontSize:11,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,margin:"0 0 16px"}}>📊 Your Scores at a Glance</p>
+            {sw.all.map(t=><ScoreBar key={t.k} label={t.label} score={t.score} color={t.score>=68?"#10B981":t.score>=52?"#F59E0B":"#EF4444"}/>)}
           </div>
 
-          {/* City + life stage insight */}
-          <div style={{background:"#12153A",borderRadius:12,padding:14,marginBottom:14,borderLeft:"3px solid #4A6FA5"}}>
-            <p style={{color:"#4A6FA5",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,margin:"0 0 4px"}}>📍 Location & Life-Stage Context</p>
-            <p style={{color:"#C5C8E0",fontSize:13,lineHeight:1.6,margin:0}}>{cityCtx.note} Your recommendations have been calibrated for someone with <strong style={{color:"#F7F5F0"}}>{profile.experience} years of experience</strong> at <strong style={{color:"#F7F5F0"}}>₹{Number(profile.salary).toLocaleString("en-IN")}/month</strong> — career transition feasibility is factored into each match score.</p>
-          </div>
+          {/* STRENGTHS */}
+          <div className="fadein print-page" style={{background:"#F0FDF4",borderRadius:16,padding:22,marginBottom:14,border:"1.5px solid #BBF7D0"}}>
+            <p style={{fontSize:11,fontWeight:700,color:"#065F46",textTransform:"uppercase",letterSpacing:1,margin:"0 0 12px"}}>💪 Your Superpowers — What You're Great At</p>
+            {sw.strengths.length>0 ? sw.strengths.map(s=>(
+              <div key={s.k} style={{background:"#fff",borderRadius:10,padding:12,marginBottom:8,display:"flex",gap:10,alignItems:"flex-start"}}>
+                <span style={{fontSize:20}}>⭐</span>
+                <div>
+                  <p style={{fontSize:14,fontWeight:700,color:"#1E293B",margin:"0 0 3px"}}>{s.label} — {s.score}/100</p>
+                  <p style={{fontSize:13,color:"#374151",margin:0,lineHeight:1.5}}>{s.desc}. This is well above average and will be a genuine advantage in many careers.</p>
+                </div>
+              </div>
+            )) : <p style={{color:"#065F46",fontSize:14}}>Your strengths are balanced across all areas — a versatile foundation!</p>}
 
-          {/* Top 10 */}
-          <h2 style={{fontSize:18,fontWeight:800,margin:"0 0 4px"}}>🏆 Your Top 10 AI-Resilient Career Matches</h2>
-          <p style={{color:"#8A8FAF",fontSize:13,margin:"0 0 14px"}}>Each career includes an AI-generated personalised TNA report, training pathway, and exam prep guide.</p>
-
-          {topCareers.map((c,i)=>(
-            <button key={c.id} onClick={()=>{ setSelCareer(i); setActiveTab("ai"); }} style={{display:"block",width:"100%",textAlign:"left",background:"#12153A",borderRadius:12,padding:16,marginBottom:10,border:"1px solid #1E2240",cursor:"pointer",borderLeft:`4px solid ${i===0?"#D4A24E":i<3?"#7A8B6F":"#2D3478"}`,transition:"border-color .15s"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                    <span style={{color:"#D4A24E",fontWeight:800,fontSize:18,minWidth:26}}>#{i+1}</span>
-                    <h3 style={{color:"#F7F5F0",fontSize:15,fontWeight:700,margin:0}}>{c.title}</h3>
+            {pp.topIntelligences.length>0&&(
+              <div style={{marginTop:10}}>
+                <p style={{fontSize:12,fontWeight:700,color:"#065F46",margin:"0 0 8px"}}>🌟 Your Top Intelligences (Gardner's 8 Types):</p>
+                {pp.topIntelligences.map(([k,v])=>(
+                  <div key={k} style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                    <span style={{background:"#10B981",color:"#fff",fontSize:11,padding:"2px 9px",borderRadius:20,fontWeight:700,whiteSpace:"nowrap"}}>{k}</span>
+                    <div style={{flex:1,background:"#E2E8F0",borderRadius:4,height:7}}><div style={{width:`${v}%`,height:"100%",background:"#10B981",borderRadius:4}}/></div>
+                    <span style={{fontSize:12,color:"#065F46",fontWeight:700,minWidth:34}}>{v}%</span>
                   </div>
-                  <span style={{background:gc(c.sector)+"33",color:gc(c.sector),fontSize:10,padding:"2px 8px",borderRadius:20,fontWeight:600}}>{c.sector}</span>
-                  <p style={{color:"#8A8FAF",fontSize:12,margin:"8px 0 0",lineHeight:1.4}}>{c.description.substring(0,85)}...</p>
-                </div>
-                <div style={{textAlign:"center",flexShrink:0}}>
-                  <div style={{fontSize:26,fontWeight:800,color:i===0?"#D4A24E":i<3?"#7A8B6F":"#C5C8E0"}}>{c.overallFit}%</div>
-                  <div style={{color:"#5A5F7F",fontSize:9,marginBottom:4}}>Fit Score</div>
-                  <div style={{background:"#0D1025",borderRadius:6,padding:"3px 6px"}}><span style={{color:"#7A8B6F",fontSize:10}}>🛡 {c.aiResilience}%</span></div>
-                </div>
+                ))}
               </div>
-              <div style={{marginTop:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                <span style={{color:"#5A5F7F",fontSize:11}}>{aiNarratives[c.id]?"✅ AI Report Ready":"🤖 AI Report Available"}</span>
-                <span style={{color:"#D4A24E",fontSize:11,fontWeight:600}}>View AI Report →</span>
-              </div>
-            </button>
-          ))}
+            )}
+          </div>
 
-          <div style={{textAlign:"center",marginTop:24,paddingBottom:40}}>
-            <button onClick={reset} style={{padding:"11px 28px",borderRadius:10,border:"2px solid #2D3478",background:"transparent",color:"#8A8FAF",fontSize:14,cursor:"pointer"}}>Retake Assessment</button>
-            <p style={{color:"#5A5F7F",fontSize:11,marginTop:12}}>© OverSimplify.in — CareerCompass™ · Powered by Claude AI (Anthropic)</p>
+          {/* AREAS TO GROW */}
+          {sw.weaknesses.length>0&&(
+            <div className="fadein print-page" style={{background:"#FFFBEB",borderRadius:16,padding:22,marginBottom:14,border:"1.5px solid #FDE68A"}}>
+              <p style={{fontSize:11,fontWeight:700,color:"#92400E",textTransform:"uppercase",letterSpacing:1,margin:"0 0 12px"}}>📈 Areas You Can Grow — Everyone Has These!</p>
+              {sw.weaknesses.map(w=>(
+                <div key={w.k} style={{background:"#fff",borderRadius:10,padding:12,marginBottom:8,display:"flex",gap:10,alignItems:"flex-start"}}>
+                  <span style={{fontSize:20}}>🌱</span>
+                  <div>
+                    <p style={{fontSize:14,fontWeight:700,color:"#1E293B",margin:"0 0 3px"}}>{w.label} — Needs development</p>
+                    <p style={{fontSize:13,color:"#374151",margin:0,lineHeight:1.5}}>{w.desc}. The good news: <strong>this is completely learnable</strong> with practice and the right training.</p>
+                  </div>
+                </div>
+              ))}
+              <p style={{fontSize:13,color:"#92400E",margin:"10px 0 0",padding:"10px 12px",background:"#FEF3C7",borderRadius:8}}>💡 <strong>Remember:</strong> Having areas to grow doesn't mean you're bad at something — it means you have exciting room to improve. Every expert started as a beginner!</p>
+            </div>
+          )}
+
+          {/* AI REPORT */}
+          {aiReport&&(
+            <div className="fadein print-page" style={{background:"#fff",borderRadius:16,padding:22,marginBottom:14,boxShadow:"0 2px 12px rgba(0,0,0,0.06)",border:"1.5px solid #E0E7FF"}}>
+              <p style={{fontSize:11,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>🤖 Your AI-Written Personalised Report</p>
+              {aiReport.split(/\n\n+/).filter(p=>p.trim()).map((para,i)=>{
+                const sectionColors=["#EEF2FF","#F0FDF4","#FFFBEB","#EFF6FF","#FFF1F2"];
+                const borders=["#6C63FF","#10B981","#F59E0B","#3B82F6","#EF4444"];
+                const cleanPara = para.replace(/^#+\s*/,"").replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/SECTION \d+ — [^:\n]+:?\s*/g,"");
+                return (
+                  <div key={i} style={{background:sectionColors[i%5],borderRadius:12,padding:14,marginBottom:10,borderLeft:`4px solid ${borders[i%5]}`}}>
+                    <p style={{fontSize:14,color:"#1E293B",lineHeight:1.75,margin:0}} dangerouslySetInnerHTML={{__html:cleanPara}}/>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TOP 10 CAREERS */}
+          <div className="fadein print-page" style={{background:"#fff",borderRadius:16,padding:22,marginBottom:14,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+            <p style={{fontSize:11,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,margin:"0 0 4px"}}>🏆 Your Top 10 Career Matches</p>
+            <p style={{fontSize:13,color:"#64748B",margin:"0 0 16px"}}>Tap any career to read a full explanation of why it suits you and how to get there.</p>
+            {topCareers.map((c,i)=>(
+              <button key={c.id} onClick={()=>setSelCareer(i)} className="no-print" style={{display:"block",width:"100%",textAlign:"left",background:i===0?"linear-gradient(135deg,#EEF2FF,#E0E7FF)":"#F8FAFC",borderRadius:14,padding:"14px 16px",marginBottom:9,border:`1.5px solid ${i===0?"#6C63FF44":"#E2E8F0"}`,cursor:"pointer",transition:"all .18s"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{display:"flex",gap:12,alignItems:"center",flex:1}}>
+                    <div style={{width:40,height:40,background:i===0?"#6C63FF":"#E2E8F0",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{c.emoji}</div>
+                    <div>
+                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:3}}>
+                        <span style={{background:i===0?"#6C63FF":"#94A3B8",color:"#fff",fontSize:10,fontWeight:800,padding:"2px 7px",borderRadius:10}}>#{i+1}</span>
+                        <span style={{fontSize:15,fontWeight:700,color:"#1E293B"}}>{c.title}</span>
+                      </div>
+                      <span style={{fontSize:11,color:"#64748B"}}>{c.sector} · {c.aiRisk>=7?"🛡️ AI-safe":"⚠️ Some AI risk"}</span>
+                    </div>
+                  </div>
+                  <div style={{textAlign:"center",flexShrink:0}}>
+                    <div style={{fontSize:22,fontWeight:800,color:i===0?"#6C63FF":"#374151"}}>{c.fit}%</div>
+                    <div style={{fontSize:9,color:"#94A3B8"}}>match</div>
+                  </div>
+                </div>
+                <p style={{fontSize:12,color:"#64748B",margin:"8px 0 0",lineHeight:1.5}}>{c.why}</p>
+                <div style={{textAlign:"right",marginTop:6}}><span style={{fontSize:11,color:"#6C63FF",fontWeight:700}}>Tap to read full details →</span></div>
+              </button>
+            ))}
+            {/* Print version — static list */}
+            <div style={{display:"none"}} className="print-show">
+              {topCareers.map((c,i)=>(
+                <div key={c.id} style={{padding:"10px 0",borderBottom:"1px solid #E2E8F0"}}>
+                  <strong>#{i+1} {c.emoji} {c.title}</strong> — {c.fit}% match — {c.sector}<br/>
+                  <span style={{fontSize:13,color:"#374151"}}>{c.why}</span><br/>
+                  <span style={{fontSize:12,color:"#64748B"}}>Path: {c.path}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DOWNLOAD & EMAIL */}
+          <div className="fadein no-print" style={{background:"#fff",borderRadius:16,padding:22,marginBottom:14,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+            <p style={{fontSize:11,fontWeight:700,color:"#6C63FF",textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>📤 Save &amp; Share Your Report</p>
+
+            <button onClick={downloadReport} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:"#6C63FF",color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              📥 Download / Print My Report
+            </button>
+
+            <div style={{background:"#F8FAFC",borderRadius:12,padding:14}}>
+              <p style={{fontSize:13,fontWeight:600,color:"#374151",margin:"0 0 10px"}}>📧 Email this report to someone:</p>
+              <div style={{display:"flex",gap:8}}>
+                <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Enter email address..." style={{...inp,flex:1}} type="email"/>
+                <button onClick={sendEmail} style={{padding:"11px 18px",borderRadius:10,border:"none",background:"#10B981",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
+                  {emailSent?"✅ Sent!":"Send →"}
+                </button>
+              </div>
+              {emailSent&&<p style={{color:"#065F46",fontSize:13,margin:"8px 0 0"}}>✅ Email instructions sent! (Note: set up EmailJS or your email service in the deployed version to actually send.)</p>}
+              <p style={{color:"#94A3B8",fontSize:11,margin:"8px 0 0"}}>You can email this to your parents, school counsellor, or anyone who helps you with career decisions.</p>
+            </div>
+          </div>
+
+          {/* RETAKE */}
+          <div className="no-print" style={{textAlign:"center",paddingBottom:40}}>
+            <button onClick={reset} style={{padding:"11px 28px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#64748B",fontSize:14,cursor:"pointer"}}>Retake Assessment</button>
+            <p style={{color:"#94A3B8",fontSize:11,marginTop:12}}>© OverSimplify.in — CareerCompass™ · Powered by Claude AI</p>
           </div>
         </div>
       </div>

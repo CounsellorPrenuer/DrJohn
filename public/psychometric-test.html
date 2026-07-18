@@ -104,18 +104,18 @@
       questions.forEach(q => {
         if (q.section !== currentSection) {
           currentSection = q.section;
-          html += `<h3 style="margin-top:40px; color:#1a3c6e;">\${currentSection}</h3>`;
+          html += `<h3 style="margin-top:40px; color:#1a3c6e;">${currentSection}</h3>`;
         }
-        html += `<div class="question"><p><strong>\${q.q}</strong></p>`;
+        html += `<div class="question"><p><strong>${q.q}</strong></p>`;
         
         if (q.type === "likert") {
-          html += `<select onchange="saveAnswer('\${q.id}', this.value)" style="font-size:16px;">`;
+          html += `<select onchange="saveAnswer('${q.id}', this.value)" style="font-size:16px;">`;
           for(let i=1; i<=5; i++) {
-            html += `<option value="\${i}" \${answers[q.id]==i ? 'selected' : ''}>\${i} - \${i===1?'Strongly Disagree':i===5?'Strongly Agree':''}</option>`;
+            html += `<option value="${i}" ${answers[q.id]==i ? 'selected' : ''}>${i} - ${i===1?'Strongly Disagree':i===5?'Strongly Agree':''}</option>`;
           }
           html += `</select>`;
         } else if (q.type === "text") {
-          html += `<input type="text" value="\${answers[q.id]||''}" onchange="saveAnswer('\${q.id}', this.value)" style="font-size:16px;">`;
+          html += `<input type="text" value="${answers[q.id]||''}" onchange="saveAnswer('${q.id}', this.value)" style="font-size:16px;">`;
         }
         html += `</div>`;
       });
@@ -138,7 +138,7 @@
     function generateReportHTML() {
       const name = answers.d1 || "Friend";
       return `
-        <h3>Hi \${name}!</h3>
+        <h3>Hi ${name}!</h3>
         <p>You did great completing this test. Here is what we learned about you:</p>
         
         <h3>Your Personality</h3>
@@ -177,7 +177,7 @@
       doc.setFontSize(12);
       const content = document.getElementById('report-content').innerText;
       doc.text(content, 20, 40);
-      doc.save(`My_Career_Report_\${(answers.d1 || "Student")}.pdf`);
+      doc.save(`My_Career_Report_${(answers.d1 || "Student")}.pdf`);
     }
 
     // Initialize

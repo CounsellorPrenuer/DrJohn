@@ -6,14 +6,36 @@
   <title>PSYCHOMETRIC TEST TO UNDERSTAND YOURSELF COMPLETELY | Mentoria</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f4f8; line-height: 1.7; }
-    .container { max-width: 1000px; margin: auto; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #1a3c6e; }
-    h2 { color: #1a3c6e; }
-    .progress-container { background: #ddd; height: 12px; border-radius: 6px; margin: 25px 0; overflow: hidden; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      background: #f0f4f8; 
+      line-height: 1.7; 
+    }
+    .container { 
+      max-width: 1000px; 
+      margin: auto; 
+      background: white; 
+      padding: 40px; 
+      border-radius: 12px; 
+      box-shadow: 0 10px 35px rgba(0,0,0,0.1); 
+    }
+    h1 { text-align: center; color: #1a3c6e; margin-bottom: 10px; }
+    h2 { text-align: center; color: #1a3c6e; }
+    .progress-container { background: #ddd; height: 12px; border-radius: 6px; margin: 30px 0; overflow: hidden; }
     .progress-bar { height: 100%; background: linear-gradient(to right, #1a3c6e, #2a7cff); transition: width 0.4s; }
-    .question { margin: 22px 0; padding: 18px; background: #f9f9f9; border-radius: 8px; border-left: 6px solid #1a3c6e; }
-    button { padding: 16px 32px; background: #1a3c6e; color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; margin: 10px; }
+    .question { margin: 25px 0; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 6px solid #1a3c6e; }
+    button { 
+      padding: 16px 32px; 
+      background: #1a3c6e; 
+      color: white; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 18px; 
+      cursor: pointer; 
+      margin: 10px; 
+    }
     button:hover { background: #2a5a9e; }
     select, input { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
     .report { display: none; margin-top: 40px; }
@@ -24,7 +46,7 @@
   <div class="container">
     <h1>PSYCHOMETRIC TEST</h1>
     <h2>Understand Yourself Completely</h2>
-    <p style="text-align:center; color:#444;">Mentoria CareerMaster™ • Simple & Honest Guidance</p>
+    <p style="text-align:center; color:#444; font-size:18px;">Mentoria CareerMaster™ • Simple & Honest Guidance</p>
 
     <div class="progress-container"><div id="progress" class="progress-bar" style="width:0%"></div></div>
 
@@ -36,9 +58,9 @@
 
     <div id="report" class="report">
       <h2 style="text-align:center;">🎉 Your Personal Report is Ready!</h2>
-      <div id="report-content" style="font-size:18px; padding:20px; background:#f9f9f9; border-radius:8px;"></div>
+      <div id="report-content" style="font-size:18px; padding:25px; background:#f9f9f9; border-radius:8px;"></div>
       
-      <div style="text-align:center; margin-top:30px;">
+      <div style="text-align:center; margin-top:40px;">
         <button onclick="downloadPDF()">📥 Download Report as PDF</button>
         <button onclick="window.location.reload()">Take Test Again</button>
       </div>
@@ -49,13 +71,11 @@
     let answers = JSON.parse(localStorage.getItem('psychometricAnswers')) || {};
 
     const questions = [
-      // Profile
       {id:"d1", section:"Profile", q:"Your Full Name", type:"text"},
       {id:"d2", section:"Profile", q:"Age Group", type:"select", options:["Under 18","18-22","23-28","29-35","36+"]},
       {id:"d3", section:"Profile", q:"Gender", type:"select", options:["Male","Female","Prefer not to say"]},
       {id:"d4", section:"Profile", q:"You are a", type:"select", options:["Student","Working Professional","Other"]},
-      
-      // Personality
+
       {id:"p1", section:"Personality", q:"I like being with friends and meeting new people.", type:"likert", scale:5},
       {id:"p2", section:"Personality", q:"I like planning things and finishing my work properly.", type:"likert", scale:5},
       {id:"p3", section:"Personality", q:"I get worried when things are uncertain.", type:"likert", scale:5},
@@ -64,44 +84,42 @@
       {id:"p6", section:"Personality", q:"I prefer working alone sometimes.", type:"likert", scale:5},
       {id:"p7", section:"Personality", q:"I can adapt to changes easily.", type:"likert", scale:5},
 
-      // Emotional Intelligence
       {id:"eq1", section:"Feelings", q:"I understand my own feelings well.", type:"likert", scale:5},
       {id:"eq2", section:"Feelings", q:"I can stay calm when things go wrong.", type:"likert", scale:5},
       {id:"eq3", section:"Feelings", q:"I can tell how other people are feeling.", type:"likert", scale:5},
-      {id:"eq4", section:"Feelings", q:"I can solve arguments in a good way.", type:"likert", scale:5},
 
-      // Interests
       {id:"i1", section:"Interests", q:"I like working with tools or making things.", type:"likert", scale:5},
       {id:"i2", section:"Interests", q:"I like solving puzzles and problems.", type:"likert", scale:5},
       {id:"i3", section:"Interests", q:"I like drawing, music, writing or designing.", type:"likert", scale:5},
       {id:"i4", section:"Interests", q:"I like helping and teaching others.", type:"likert", scale:5},
 
-      // Values & Mindset
       {id:"v1", section:"What I Value", q:"I want my work to help other people or society.", type:"likert", scale:5},
-      {id:"g1", section:"Mindset", q:"I keep trying even when things are hard.", type:"likert", scale:5},
-      {id:"g2", section:"Mindset", q:"I believe I can improve if I practice.", type:"likert", scale:5}
+      {id:"g1", section:"Mindset", q:"I keep trying even when things are hard.", type:"likert", scale:5}
     ];
 
     function renderQuestions() {
       let html = '';
       let currentSection = '';
+      
       questions.forEach(q => {
         if (q.section !== currentSection) {
           currentSection = q.section;
-          html += `<h3>${currentSection}</h3>`;
+          html += `<h3 style="margin-top:40px; color:#1a3c6e;">\${currentSection}</h3>`;
         }
-        html += `<div class="question"><p><strong>${q.q}</strong></p>`;
+        html += `<div class="question"><p><strong>\${q.q}</strong></p>`;
+        
         if (q.type === "likert") {
-          html += `<select onchange="saveAnswer('${q.id}', this.value)">`;
+          html += `<select onchange="saveAnswer('\${q.id}', this.value)" style="font-size:16px;">`;
           for(let i=1; i<=5; i++) {
-            html += `<option value="${i}" ${answers[q.id]==i ? 'selected' : ''}>${i} - ${i===1?'Strongly Disagree':i===5?'Strongly Agree':''}</option>`;
+            html += `<option value="\${i}" \${answers[q.id]==i ? 'selected' : ''}>\${i} - \${i===1?'Strongly Disagree':i===5?'Strongly Agree':''}</option>`;
           }
           html += `</select>`;
         } else if (q.type === "text") {
-          html += `<input type="text" value="${answers[q.id]||''}" onchange="saveAnswer('${q.id}', this.value)">`;
+          html += `<input type="text" value="\${answers[q.id]||''}" onchange="saveAnswer('\${q.id}', this.value)" style="font-size:16px;">`;
         }
         html += `</div>`;
       });
+      
       document.getElementById('test-content').innerHTML = html;
       updateProgress();
     }
@@ -118,63 +136,51 @@
     }
 
     function generateReportHTML() {
-      const name = answers.d1 || "my friend";
-      const avg = Object.values(answers).filter(v => !isNaN(v)).reduce((a,b)=>a+parseFloat(b),0) / Object.keys(answers).length || 3.8;
-
+      const name = answers.d1 || "Friend";
       return `
-        <h3>Hi ${name}!</h3>
-        <p>You have done a wonderful job completing this test. This report will help you understand yourself better.</p>
+        <h3>Hi \${name}!</h3>
+        <p>You did great completing this test. Here is what we learned about you:</p>
         
         <h3>Your Personality</h3>
-        <p>You are a mix of ${avg > 3.5 ? 'outgoing and friendly' : 'thoughtful and calm'}. You like both spending time with people and working on your own.</p>
+        <p>You are friendly, thoughtful, and adaptable.</p>
         
         <h3>Your Super Strengths</h3>
         <ul>
-          <li>You understand feelings — your own and others'.</li>
-          <li>You keep trying even when things are difficult.</li>
-          <li>You have good creative ideas.</li>
-          <li>You are kind and helpful to others.</li>
+          <li>Understanding feelings (yours and others)</li>
+          <li>Keeping going when things are hard</li>
+          <li>Creative thinking</li>
+          <li>Helping others</li>
         </ul>
         
-        <h3>Best Career Ideas for You</h3>
-        <p>These careers can make you happy and successful:</p>
+        <h3>Good Career Paths for You</h3>
         <ul>
-          <li>Teacher, Doctor, or Counselor</li>
-          <li>Engineer, Scientist, or Programmer</li>
-          <li>Artist, Designer, Writer, or Content Creator</li>
-          <li>Business, Marketing, or Leadership roles</li>
+          <li>Teaching / Counseling</li>
+          <li>Engineering / Technology</li>
+          <li>Creative fields (Design, Writing, Art)</li>
+          <li>Business & Leadership</li>
         </ul>
         
-        <h3>Your Next Steps</h3>
-        <p>1. Talk to your parents and teachers about these ideas.<br>
-           2. Try small projects in the areas you like.<br>
-           3. Keep learning new things every day.<br>
-           4. You can always change your path — you are in control!</p>
-        
-        <p style="margin-top:30px; font-size:19px;"><strong>Final Message:</strong> You are unique and special. Work hard, stay kind, and a bright future is waiting for you!</p>
+        <p><strong>Next Step:</strong> Talk to your family or mentor and start exploring these areas.</p>
       `;
     }
 
     function submitTest() {
       document.getElementById('report-content').innerHTML = generateReportHTML();
       document.getElementById('report').style.display = 'block';
-      document.getElementById('test-content').style.display = 'none';
     }
 
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const reportText = document.getElementById('report-content').innerText;
-
-      doc.setFontSize(16);
+      doc.setFontSize(18);
       doc.text("PSYCHOMETRIC TEST REPORT", 20, 20);
       doc.setFontSize(12);
-      doc.text(reportText.split('\n'), 20, 40);
-      
-      const name = answers.d1 || "Student";
-      doc.save(\`My_Psychometric_Report_\${name}.pdf\`);
+      const content = document.getElementById('report-content').innerText;
+      doc.text(content, 20, 40);
+      doc.save(`My_Career_Report_\${(answers.d1 || "Student")}.pdf`);
     }
 
+    // Initialize
     window.onload = renderQuestions;
   </script>
 </body>

@@ -1,7 +1,7 @@
 "use client"
 
-import ArmyNavyTest from "@/components/ArmyNavyTest";
+import SSBCompass from "@/components/SSBCompass";
 
 export default function ArmyNavyTestPage() {
-  return <ArmyNavyTest />;
+  return <SSBCompass />;
 }

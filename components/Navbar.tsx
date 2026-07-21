@@ -73,7 +73,7 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
 
   const testLinks = [
     { href: '/career-compass-ai', label: 'Ai based Training Need Analysis' },
-    { href: '/ospa', label: 'ARMY NAVY AIR FORCE SELF ASSESSMENT' }
+    { href: '/ospa', label: 'SSB COMPASS' }
   ]
 
   const navBg = '#ffffff'

@@ -140,18 +140,20 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
                 Tests
                 <svg className="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
               </button>
-              <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-lg rounded-md overflow-hidden hidden group-hover:block border" style={{ borderColor: `${navText}20` }}>
-                {testLinks.map((test) => (
-                  <a
-                    key={test.href}
-                    href={test.href}
-                    onClick={(e) => handleAnchorClick(e, test.href)}
-                    className="block px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
-                    style={{ color: navText, fontWeight: 600 }}
-                  >
-                    {test.label}
-                  </a>
-                ))}
+              <div className="absolute top-full right-0 pt-2 w-64 hidden group-hover:block">
+                <div className="bg-white shadow-lg rounded-md overflow-hidden border" style={{ borderColor: `${navText}20` }}>
+                  {testLinks.map((test) => (
+                    <a
+                      key={test.href}
+                      href={test.href}
+                      onClick={(e) => handleAnchorClick(e, test.href)}
+                      className="block px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                      style={{ color: navText, fontWeight: 600 }}
+                    >
+                      {test.label}
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

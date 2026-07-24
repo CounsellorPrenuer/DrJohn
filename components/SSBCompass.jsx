@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 
 // SSBCompass™ — Indian Defence Officer Selection Readiness Assessment
-// by Colonel Dr JC John (PhD) · OverSimplify.in · MENTORIA
+// by Colonel Dr JC John (PhD) · Colonel's MENTORIA
 // REDESIGNED: Every question has 5 behavioural sentences (no Likert scales)
 // Full terminology: "Officer Like Qualities" never abbreviated to OLQ
 // Module briefing before each stage · Detailed improvement plans in report
@@ -692,7 +692,7 @@ async function generateReport(name, profile, scores) {
   const top5 = sorted.slice(0,5).map(([k])=>OLQ_LIST[k].label);
   const weak4 = sorted.slice(-4).map(([k])=>({key:k, label:OLQ_LIST[k].label, score:olqScores[k]}));
 
-  const prompt = `You are Colonel Dr JC John (PhD), a retired Indian Army Colonel, senior SSB assessor, and founder of MENTORIA at OverSimplify.in. You have personally assessed thousands of officer candidates over 30 years.
+  const prompt = `You are Colonel Dr JC John (PhD), a retired Indian Army Colonel, senior SSB assessor, and founder of Colonel's MENTORIA. You have personally assessed thousands of officer candidates over 30 years.
 
 Write a personalised SSB Officer Readiness Report for ${name}, age ${profile.age||"not specified"}, from ${profile.city||"India"}, aspiring to join the ${profile.service||"Indian Armed Forces"} through ${profile.entry||"NDA/CDS"}.
 
@@ -842,7 +842,7 @@ export default function SSBCompass() {
               <span style={{fontSize:36}}>⚔️</span><span style={{fontSize:36}}>🎖️</span><span style={{fontSize:36}}>✈️</span>
             </div>
             <h1 style={{fontSize:26,fontWeight:900,color:NAVY,margin:"0 0 4px"}}>SSBCompass™</h1>
-            <p style={{color:NAVY,fontSize:13,fontWeight:700,margin:"0 0 8px"}}>by Colonel Dr JC John (PhD) · OverSimplify.in · MENTORIA</p>
+            <p style={{color:NAVY,fontSize:13,fontWeight:700,margin:"0 0 8px"}}>by Colonel's MENTORIA</p>
             <p style={{color:"#64748B",fontSize:14,lineHeight:1.7}}>The most comprehensive Indian Defence Officer readiness assessment — measuring all <strong>15 Officer Like Qualities</strong> across <strong>4 Factors</strong> through <strong>9 test stages</strong> that mirror the actual SSB process.</p>
           </div>
 
@@ -1122,7 +1122,7 @@ export default function SSBCompass() {
                 </button>
               </div>
               {emailOk&&<p style={{color:"#065F46",fontSize:12,margin:"8px 0 0"}}>✅ Sent! Connect your email service in the deployed version to enable actual delivery.</p>}
-              <p style={{color:"#94A3B8",fontSize:11,margin:"8px 0 0"}}>Share with your parents, SSB coaching mentor, or Colonel Dr JC John's team at MENTORIA — OverSimplify.in.</p>
+              <p style={{color:"#94A3B8",fontSize:11,margin:"8px 0 0"}}>Share with your parents, SSB coaching mentor, or Colonel Dr JC John's team at Colonel's MENTORIA.</p>
             </div>
           </div>
 
@@ -1130,7 +1130,7 @@ export default function SSBCompass() {
           <div className="np" style={{textAlign:"center",paddingBottom:40}}>
             <button onClick={reset} style={{padding:"11px 28px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#64748B",fontSize:14,cursor:"pointer"}}>Retake Assessment</button>
             <p style={{color:"#94A3B8",fontSize:11,marginTop:12}}>
-              © OverSimplify.in — SSBCompass™ by Colonel Dr JC John (PhD) · Powered by Claude AI (Anthropic)<br/>
+              © Colonel's MENTORIA — SSBCompass™ by Colonel Dr JC John (PhD) · Powered by Claude AI (Anthropic)<br/>
               This is a preparation and development tool. Official SSB selection is conducted by the Services Selection Boards of the Indian Armed Forces.
             </p>
           </div>

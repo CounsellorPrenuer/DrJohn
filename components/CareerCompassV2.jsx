@@ -586,7 +586,7 @@ export default function App() {
           <div style={{textAlign:"center",marginBottom:24}}>
             <div style={{fontSize:52,marginBottom:8}}>🧭</div>
             <h1 style={{fontSize:26,fontWeight:800,color:"#1E293B",margin:"0 0 6px"}}>CareerCompass™</h1>
-            <p style={{color:"#6C63FF",fontSize:13,fontWeight:700,margin:"0 0 4px"}}>by OverSimplify.in · MENTORIA</p>
+            <p style={{color:"#2563EB",fontSize:13,fontWeight:700,margin:"0 0 4px"}}>by Colonel&#39;s MENTORIA</p>
             <p style={{color:"#64748B",fontSize:14,lineHeight:1.65,marginTop:10}}>Find the careers that are <strong>perfect for YOU</strong> — based on your personality, strengths, and interests. Takes about <strong>20 minutes</strong>. 100 fun questions. No wrong answers!</p>
           </div>
 
@@ -995,7 +995,7 @@ export default function App() {
           {/* RETAKE */}
           <div className="no-print" style={{textAlign:"center",paddingBottom:40}}>
             <button onClick={reset} style={{padding:"11px 28px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#64748B",fontSize:14,cursor:"pointer"}}>Retake Assessment</button>
-            <p style={{color:"#94A3B8",fontSize:11,marginTop:12}}>© OverSimplify.in — CareerCompass™ · Powered by Claude AI</p>
+            <p style={{color:"#94A3B8",fontSize:11,marginTop:12}}>© Colonel&#39;s MENTORIA — CareerCompass™ · Powered by Claude AI</p>
           </div>
         </div>
       </div>

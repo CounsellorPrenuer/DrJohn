@@ -77,7 +77,7 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
   ]
 
   const navBg = '#ffffff'
-  const navText = '#e60000'
+  const navText = '#2563EB'
   const logoUrl = '/oversimplify-logo.png'
 
   return (
@@ -92,14 +92,12 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
           <a
             href="#home"
             onClick={(e) => handleAnchorClick(e, '#home')}
-            className="hidden md:flex items-center justify-start w-44 h-12 flex-shrink-0"
+            className="hidden md:flex items-center justify-start w-48 h-12 flex-shrink-0"
             aria-label="Go to home"
           >
-            <img
-              src={logoUrl}
-              alt={navigation?.logo?.alt || navigation?.brandName || 'Logo'}
-              className="h-10 w-auto object-contain"
-            />
+            <span style={{ color: '#2563EB', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: 850, fontSize: '1.25rem', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>
+              Colonel&#39;s MENTORIA
+            </span>
           </a>
 
           <a
@@ -108,11 +106,9 @@ export default function Navbar({ navigation: initialNavigation }: { navigation?:
             className="md:hidden flex items-center justify-start w-28 h-12 flex-shrink-0"
             aria-label="Go to home"
           >
-            <img
-              src={logoUrl}
-              alt={navigation?.logo?.alt || navigation?.brandName || 'Logo'}
-              className="h-9 w-auto object-contain"
-            />
+            <span style={{ color: '#2563EB', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', fontWeight: 850, fontSize: '1rem', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>
+              Colonel&#39;s MENTORIA
+            </span>
           </a>
 
           {/* Desktop Navigation */}

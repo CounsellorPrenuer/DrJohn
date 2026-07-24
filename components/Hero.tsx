@@ -62,7 +62,7 @@ const ptComponents: any = {
                 className="underline"
                 style={{ color: '#2563EB' }}
               >
-                https://oversimplify.in
+                Colonel&#39;s MENTORIA
               </a>{' '}
               to understand &#39;Lifelong Learning&#39;
             </p>
@@ -73,7 +73,7 @@ const ptComponents: any = {
                 className="underline"
                 style={{ color: '#2563EB' }}
               >
-                https://oversimplify.in/career-compass-ai
+                Colonel&#39;s MENTORIA Career Compass
               </a>
             </p>
           </div>

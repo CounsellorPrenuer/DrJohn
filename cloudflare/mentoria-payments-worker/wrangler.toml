@@ -1,0 +1,13 @@
+name = "mentoria-payments-worker"
+main = "src/index.ts"
+compatibility_date = "2026-04-16"
+
+[vars]
+CORS_ORIGIN = "*"
+SANITY_PROJECT_ID = "6w0t9e7l"
+SANITY_DATASET = "production"
+
+[[d1_databases]]
+binding = "LEADS_DB"
+database_name = "mentoria-db"
+database_id = "c6f93f79-e10b-4b05-85d2-be486ec2eff9"

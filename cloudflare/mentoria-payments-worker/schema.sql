@@ -24,3 +24,21 @@ CREATE TABLE IF NOT EXISTS payment_leads (
   status TEXT DEFAULT 'created',
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS test_attempts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  age INTEGER,
+  city TEXT,
+  sex TEXT,
+  experience INTEGER,
+  test_type TEXT NOT NULL,
+  status TEXT DEFAULT 'started',
+  responses TEXT,
+  report TEXT,
+  payment_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);

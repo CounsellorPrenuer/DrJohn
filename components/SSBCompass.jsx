@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // SSBCompass™ — Indian Defence Officer Selection Readiness Assessment
 // by Professor Dr John Chenetra · Colonel's MENTORIA
@@ -770,11 +770,31 @@ export default function SSBCompass() {
   const [allAns,setAllAns]=useState({});
   const [profile,setProfile]=useState({name:"",age:"",city:"",service:"Indian Army",entry:"NDA"});
   const [nameIn,setNameIn]=useState("");
+  const [emailIn,setEmailIn]=useState("");
+  const [phoneIn,setPhoneIn]=useState("");
+  const [couponCode,setCouponCode]=useState("");
+  const [couponFeedback,setCouponFeedback]=useState("");
+  const [discountPercent,setDiscountPercent]=useState(0);
+  const [finalPrice,setFinalPrice]=useState(1999);
+  const [isProcessingPayment,setIsProcessingPayment]=useState(false);
+  const [paymentId,setPaymentId]=useState("");
+
   const [scores,setScores]=useState(null);
   const [report,setReport]=useState("");
   const [email,setEmail]=useState("");
   const [emailOk,setEmailOk]=useState(false);
   const [openFactor,setOpenFactor]=useState(null);
+
+  const workerBaseUrl = "https://mentoria-payments-worker.sarwatemihika.workers.dev";
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.Razorpay) return;
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   const stageKeys=["s1","s2","s3","s4","s5","s6","s7","s8","s9"];
   const curKey=stageKeys[sIdx];
@@ -786,7 +806,7 @@ export default function SSBCompass() {
   const totalQ=stageKeys.reduce((s,k)=>(QUESTIONS[k]||[]).length+s,0);
   const doneQ=stageKeys.slice(0,sIdx).reduce((s,k)=>(QUESTIONS[k]||[]).length+s,0)+(showBrief?0:qIdx);
   const pct=Math.round(doneQ/totalQ*100);
-  const canGo=nameIn.trim()&&profile.age;
+  const canGo=nameIn.trim()&&emailIn.trim()&&phoneIn.trim()&&profile.age;
 
   function setP(k,v){setProfile(p=>({...p,[k]:v}));}
   function setAns(v){setAllAns(p=>({...p,[curKey]:{...(p[curKey]||{}),[curQ.id]:v}}));}
@@ -808,29 +828,199 @@ export default function SSBCompass() {
 
   async function finish(){
     setScreen("loading");
+    let sc = null;
+    let rpt = "";
     try{
-      const sc=scoreAll(allAns);
+      sc=scoreAll(allAns);
       setScores(sc);
       try{
         const nm=profile.name||nameIn;
-        const rpt=await generateReport(nm,{...profile,name:nm},sc);
+        rpt=await generateReport(nm,{...profile,name:nm},sc);
         setReport(rpt);
       }catch(e){setReport("");}
     }catch(e){}
+
+    // Save completed attempt in DB and email it
+    try {
+      await fetch(`${workerBaseUrl}/test/attempt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: nameIn.trim(),
+          email: emailIn.trim(),
+          phone: phoneIn.trim(),
+          age: profile.age,
+          city: profile.city,
+          sex: `${profile.service} - ${profile.entry}`,
+          experience: 0,
+          testType: "ssb",
+          status: "completed",
+          responses: JSON.stringify(allAns),
+          report: rpt,
+          paymentId: paymentId
+        })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
     setScreen("results");
   }
 
-  function start(){
-    if(!canGo) return;
-    setProfile(p=>({...p,name:nameIn.trim()}));
-    setScreen("test");setSIdx(0);setQIdx(0);setShowBrief(true);setAllAns({});
+  async function handleApplyCoupon() {
+    if (!couponCode.trim()) return;
+    setCouponFeedback("Applying...");
+    try {
+      const res = await fetch(`${workerBaseUrl}/coupon/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: "ssb", couponCode: couponCode.trim(), amountInPaise: 199900 })
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setDiscountPercent(data.discountPercent);
+        setFinalPrice(Math.round(data.finalAmountPaise / 100));
+        setCouponFeedback(`Success: ${data.message} (${data.discountPercent}% Off)`);
+      } else {
+        setCouponFeedback(data.message || "Failed to validate coupon.");
+      }
+    } catch (err) {
+      setCouponFeedback("Error validating coupon.");
+    }
   }
+
+  async function start(){
+    if(!canGo) {
+      alert("Name, Email, Mobile/Phone, and Age are required.");
+      return;
+    }
+    setProfile(p=>({...p,name:nameIn.trim()}));
+    setIsProcessingPayment(true);
+
+    const finalPricePaise = finalPrice * 100;
+
+    try {
+      const orderRes = await fetch(`${workerBaseUrl}/checkout/order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: "ssb",
+          planTitle: "ARMY NAVY AIR FORCE SELF ASSESSMENT (SSBCompass)",
+          customer: { name: nameIn.trim(), email: emailIn.trim(), phone: phoneIn.trim() },
+          couponCode: couponCode.trim(),
+          amountInPaise: 199900
+        })
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderRes.ok) {
+        alert(orderData.message || "Failed to create order.");
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      if (finalPricePaise === 0) {
+        // Free test bypass
+        await fetch(`${workerBaseUrl}/test/attempt`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: nameIn.trim(),
+            email: emailIn.trim(),
+            phone: phoneIn.trim(),
+            age: profile.age,
+            city: profile.city,
+            sex: `${profile.service} - ${profile.entry}`,
+            experience: 0,
+            testType: "ssb",
+            status: "started",
+            paymentId: "FREE_COUPON"
+          })
+        });
+        setPaymentId("FREE_COUPON");
+        setIsProcessingPayment(false);
+        setScreen("test"); setSIdx(0); setQIdx(0); setShowBrief(true); setAllAns({});
+        return;
+      }
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amountInPaise,
+        currency: orderData.currency,
+        name: "Colonel's MENTORIA",
+        description: "ARMY NAVY AIR FORCE SELF ASSESSMENT",
+        order_id: orderData.orderId,
+        handler: async function (response) {
+          const verifyRes = await fetch(`${workerBaseUrl}/checkout/verify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planId: "ssb",
+              planTitle: "ARMY NAVY AIR FORCE SELF ASSESSMENT (SSBCompass)",
+              customer: { name: nameIn.trim(), email: emailIn.trim(), phone: phoneIn.trim() },
+              couponCode: couponCode.trim(),
+              amountInPaise: finalPricePaise
+            })
+          });
+
+          if (verifyRes.ok) {
+            await fetch(`${workerBaseUrl}/test/attempt`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: nameIn.trim(),
+                email: emailIn.trim(),
+                phone: phoneIn.trim(),
+                age: profile.age,
+                city: profile.city,
+                sex: `${profile.service} - ${profile.entry}`,
+                experience: 0,
+                testType: "ssb",
+                status: "started",
+                paymentId: response.razorpay_payment_id
+              })
+            });
+            setPaymentId(response.razorpay_payment_id);
+            setScreen("test"); setSIdx(0); setQIdx(0); setShowBrief(true); setAllAns({});
+          } else {
+            alert("Payment signature verification failed.");
+          }
+          setIsProcessingPayment(false);
+        },
+        prefill: {
+          name: nameIn.trim(),
+          email: emailIn.trim(),
+          contact: phoneIn.trim()
+        },
+        theme: {
+          color: "#1E3A8A"
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessingPayment(false);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      alert("Error initiating Razorpay checkout.");
+      setIsProcessingPayment(false);
+    }
+  }
+
   function reset(){
     setScreen("intro");setAllAns({});setSIdx(0);setQIdx(0);
-    setScores(null);setReport("");setNameIn("");
+    setScores(null);setReport("");setNameIn("");setEmailIn("");setPhoneIn("");
+    setCouponCode("");setCouponFeedback("");setDiscountPercent(0);setFinalPrice(1999);
     setProfile({name:"",age:"",city:"",service:"Indian Army",entry:"NDA"});
     setEmail("");setEmailOk(false);setOpenFactor(null);
   }
+
 
   // INTRO
   if(screen==="intro") return(
@@ -863,38 +1053,71 @@ export default function SSBCompass() {
             </p>
           </div>
 
-          <div style={{marginBottom:12}}>
-            <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Full Name *</label>
-            <input value={nameIn} onChange={e=>setNameIn(e.target.value)} placeholder="Your full name..." style={INP}/>
-          </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+            <div>
+              <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Full Name *</label>
+              <input value={nameIn} onChange={e=>setNameIn(e.target.value)} placeholder="Your full name..." style={INP}/>
+            </div>
             <div>
               <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Age *</label>
               <input type="number" min="16" max="35" value={profile.age} onChange={e=>setP("age",e.target.value)} placeholder="e.g. 19" style={INP}/>
             </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+            <div>
+              <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Email *</label>
+              <input type="email" value={emailIn} onChange={e=>setEmailIn(e.target.value)} placeholder="you@example.com" style={INP}/>
+            </div>
+            <div>
+              <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Mobile / Phone *</label>
+              <input type="tel" value={phoneIn} onChange={e=>setPhoneIn(e.target.value)} placeholder="e.g. 9876543210" style={INP}/>
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
             <div>
               <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>City</label>
               <input value={profile.city} onChange={e=>setP("city",e.target.value)} placeholder="e.g. Delhi" style={INP}/>
             </div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
             <div>
               <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Target Service</label>
               <select value={profile.service} onChange={e=>setP("service",e.target.value)} style={{...INP,appearance:"none"}}>
                 <option>Indian Army</option><option>Indian Navy</option><option>Indian Air Force</option><option>All Three Services</option>
               </select>
             </div>
-            <div>
-              <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Entry Scheme</label>
-              <select value={profile.entry} onChange={e=>setP("entry",e.target.value)} style={{...INP,appearance:"none"}}>
-                <option>NDA</option><option>CDS</option><option>TES / TGC</option><option>AFCAT</option><option>SSC</option><option>NCC Special Entry</option>
-              </select>
-            </div>
           </div>
-          <button onClick={start} disabled={!canGo} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:canGo?NAVY:"#E2E8F0",color:canGo?"#fff":"#94A3B8",fontSize:16,fontWeight:800,cursor:canGo?"pointer":"not-allowed",transition:"all .2s"}}>
-            {canGo?`Begin Assessment — Jai Hind! 🇮🇳`:"Enter your name and age to begin"}
+
+          <div style={{marginBottom:16}}>
+            <label style={{display:"block",fontSize:11,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Entry Scheme</label>
+            <select value={profile.entry} onChange={e=>setP("entry",e.target.value)} style={{...INP,appearance:"none"}}>
+              <option>NDA</option><option>CDS</option><option>TES / TGC</option><option>AFCAT</option><option>SSC</option><option>NCC Special Entry</option>
+            </select>
+          </div>
+
+          {/* Coupon Code section */}
+          <div style={{background:"#F8FAFC",borderRadius:12,padding:14,marginBottom:16,border:"1px solid #E2E8F0"}}>
+            <label style={{display:"block",fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:0.8,marginBottom:6}}>Apply Coupon Code</label>
+            <div style={{display:"flex",gap:8}}>
+              <input value={couponCode} onChange={e=>setCouponCode(e.target.value.toUpperCase())} placeholder="e.g. FREE100" style={{...INP,flex:1,padding:"8px 12px"}}/>
+              <button onClick={handleApplyCoupon} style={{padding:"8px 16px",borderRadius:8,border:"none",background:"#1E3A8A",color:"#fff",fontWeight:600,fontSize:13,cursor:"pointer"}}>Apply</button>
+            </div>
+            {couponFeedback&&<p style={{fontSize:12,color:couponFeedback.includes("Success")?"#059669":"#DC2626",margin:"6px 0 0",fontWeight:600}}>{couponFeedback}</p>}
+          </div>
+
+          {/* Payment summary */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:"#EFF6FF",padding:12,borderRadius:10,marginBottom:16,border:"1px solid #BFDBFE"}}>
+            <span style={{fontSize:14,fontWeight:600,color:"#1E3A8A"}}>Total Amount payable:</span>
+            <span style={{fontSize:18,fontWeight:800,color:"#1E3A8A"}}>
+              {discountPercent > 0 && <span style={{textDecoration:"line-through",fontSize:14,color:"#93C5FD",marginRight:6}}>₹1999</span>}
+              ₹{finalPrice}
+            </span>
+          </div>
+
+          <button onClick={start} disabled={isProcessingPayment || !canGo} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:canGo?NAVY:"#E2E8F0",color:canGo?"#fff":"#94A3B8",fontSize:16,fontWeight:800,cursor:(canGo && !isProcessingPayment)?"pointer":"not-allowed",transition:"all .2s"}}>
+            {isProcessingPayment?"Opening Razorpay...":"Pay & Begin Assessment — Jai Hind! 🇮🇳"}
           </button>
-          <p style={{color:"#94A3B8",fontSize:11,textAlign:"center",marginTop:10}}>~35 minutes · {totalQ} questions · Completely private · All data stays on your device</p>
+          <p style={{color:"#94A3B8",fontSize:11,textAlign:"center",marginTop:10}}>~35 minutes · {totalQ} questions · Upon payment, the test unlocks instantly. A copy of your report is emailed to you.</p>
         </div>
       </div>
     </div>

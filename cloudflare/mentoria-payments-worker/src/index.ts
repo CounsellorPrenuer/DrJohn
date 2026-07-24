@@ -25,7 +25,8 @@ type CouponDefinition = {
 
 const COUPONS: CouponDefinition[] = [
   { code: 'MENTORIA10', discountPercent: 10, active: true },
-  { code: 'CAREER20', discountPercent: 20, active: true }
+  { code: 'CAREER20', discountPercent: 20, active: true },
+  { code: 'FREE100', discountPercent: 100, active: true }
 ]
 
 const PLAN_AMOUNTS: Record<string, number> = {
@@ -36,7 +37,9 @@ const PLAN_AMOUNTS: Record<string, number> = {
   'achieve-plus': 1059900,
   'ascend-online': 649900,
   ascend: 649900,
-  'ascend-plus': 1059900
+  'ascend-plus': 1059900,
+  tna: 149900,
+  ssb: 199900
 }
 
 const json = (body: unknown, status = 200) =>
@@ -51,7 +54,7 @@ const json = (body: unknown, status = 200) =>
 const corsHeaders = (origin: string) => ({
   'Access-Control-Allow-Origin': origin,
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Password'
 })
 
 const withCors = (response: Response, origin: string) => {
@@ -169,6 +172,48 @@ const insertPaymentLead = async (env: Env, data: any) => {
     .run()
 }
 
+const sendEmailReport = async (data: any) => {
+  const subject = `[Completed Report] ${data.name} - ${data.testType.toUpperCase()}`
+  const bodyHtml = `
+    <h2>Mentoria Test Completed Report</h2>
+    <p><strong>Candidate Name:</strong> ${data.name}</p>
+    <p><strong>Email:</strong> ${data.email}</p>
+    <p><strong>Phone/Mobile:</strong> ${data.phone}</p>
+    <p><strong>Age:</strong> ${data.age || 'N/A'}</p>
+    <p><strong>City:</strong> ${data.city || 'N/A'}</p>
+    <p><strong>Gender/Sex:</strong> ${data.sex || 'N/A'}</p>
+    <p><strong>Work Experience:</strong> ${data.experience || 0} years</p>
+    <p><strong>Test Type:</strong> ${data.testType.toUpperCase()}</p>
+    <p><strong>Completed At:</strong> ${new Date().toLocaleString('en-IN')}</p>
+    <hr />
+    <h3>AI Report Content:</h3>
+    <div style="font-family: sans-serif; line-height: 1.6; white-space: pre-wrap;">
+      ${data.report || 'No report generated.'}
+    </div>
+  `
+
+  await fetch('https://api.mailchannels.net/tx/v1/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      personalizations: [
+        {
+          to: [
+            { email: 'dr.john.c.john@gmail.com', name: 'Professor Dr John Chenetra' },
+            { email: data.email, name: data.name }
+          ]
+        }
+      ],
+      from: {
+        email: 'noreply@mentoria.com',
+        name: 'Mentoria Psychometric Platform'
+      },
+      subject: subject,
+      content: [{ type: 'text/html', value: bodyHtml }]
+    })
+  })
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
@@ -180,13 +225,7 @@ export default {
 
     try {
       if (url.pathname === '/health') {
-        return withCors(
-          json({
-            ok: true,
-            message: 'Mentoria payment worker is live.'
-          }),
-          origin
-        )
+        return withCors(json({ ok: true, message: 'Mentoria payment worker is live.' }), origin)
       }
 
       if (url.pathname === '/public-config' && request.method === 'GET') {
@@ -210,7 +249,7 @@ export default {
         }
 
         const discountAmountPaise = Math.round((amountInPaise * coupon.discountPercent) / 100)
-        const finalAmountPaise = Math.max(100, amountInPaise - discountAmountPaise)
+        const finalAmountPaise = Math.max(0, amountInPaise - discountAmountPaise)
 
         return withCors(
           json({
@@ -231,9 +270,13 @@ export default {
         const baseAmountPaise = amountForPlan(planId, Number(body?.amountInPaise))
         const coupon = body?.couponCode ? findCoupon(body.couponCode) : null
         const discountAmountPaise = coupon ? Math.round((baseAmountPaise * coupon.discountPercent) / 100) : 0
-        const finalAmountPaise = Math.max(100, baseAmountPaise - discountAmountPaise)
+        const finalAmountPaise = Math.max(0, baseAmountPaise - discountAmountPaise)
 
-        const order = await createRazorpayOrder(env, finalAmountPaise, body?.planTitle || 'Mentoria Plan')
+        let orderId = 'free_bypass'
+        if (finalAmountPaise > 0) {
+          const order = await createRazorpayOrder(env, finalAmountPaise, body?.planTitle || 'Mentoria Plan')
+          orderId = order.id
+        }
 
         await insertPaymentLead(env, {
           planId,
@@ -242,14 +285,14 @@ export default {
           couponCode: coupon?.code || '',
           baseAmountPaise,
           finalAmountPaise,
-          orderId: order.id,
+          orderId,
           paymentId: '',
-          status: 'order_created'
+          status: finalAmountPaise === 0 ? 'free_completed' : 'order_created'
         })
 
         return withCors(
           json({
-            orderId: order.id,
+            orderId,
             amountInPaise: finalAmountPaise,
             currency: 'INR',
             keyId: env.RAZORPAY_KEY_ID,
@@ -303,15 +346,76 @@ export default {
         )
       }
 
-      if (url.pathname === '/webhook/razorpay' && request.method === 'POST') {
-        const signature = request.headers.get('x-razorpay-signature') || ''
-        const rawPayload = await request.text()
-        const isValid = await verifySignature(env.RAZORPAY_WEBHOOK_SECRET, rawPayload, signature)
-        if (!isValid) {
-          return withCors(json({ ok: false, message: 'Invalid webhook signature.' }, 400), origin)
+      // ─── TEST ATTEMPTS TRACKING ENDPOINTS ───────────────────
+      if (url.pathname === '/test/attempt' && request.method === 'POST') {
+        const body = await parseJson(request)
+        if (!body?.name || !body?.email || !body?.phone || !body?.testType) {
+          return withCors(json({ ok: false, message: 'Missing required parameters.' }, 400), origin)
         }
 
-        return withCors(json({ ok: true }), origin)
+        if (body.status === 'completed') {
+          // Send report email immediately
+          await sendEmailReport(body)
+
+          // Update existing or insert new attempt
+          await env.LEADS_DB.prepare(
+            `INSERT INTO test_attempts (
+              name, email, phone, age, city, sex, experience, test_type, status, responses, report, payment_id, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+          )
+            .bind(
+              body.name,
+              body.email,
+              body.phone,
+              body.age ? Number(body.age) : null,
+              body.city || '',
+              body.sex || '',
+              body.experience ? Number(body.experience) : 0,
+              body.testType,
+              'completed',
+              body.responses || '',
+              body.report || '',
+              body.paymentId || ''
+            )
+            .run()
+        } else {
+          // Started attempt
+          await env.LEADS_DB.prepare(
+            `INSERT INTO test_attempts (
+              name, email, phone, age, city, sex, experience, test_type, status, responses, report, payment_id, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+          )
+            .bind(
+              body.name,
+              body.email,
+              body.phone,
+              body.age ? Number(body.age) : null,
+              body.city || '',
+              body.sex || '',
+              body.experience ? Number(body.experience) : 0,
+              body.testType,
+              'started',
+              '',
+              '',
+              body.paymentId || ''
+            )
+            .run()
+        }
+
+        return withCors(json({ ok: true, message: 'Attempt registered.' }), origin)
+      }
+
+      if (url.pathname === '/admin/attempts' && request.method === 'GET') {
+        const passwordHeader = request.headers.get('X-Admin-Password')
+        if (passwordHeader !== 'JohnChenetra2026') {
+          return withCors(json({ ok: false, message: 'Unauthorized.' }, 401), origin)
+        }
+
+        const { results } = await env.LEADS_DB.prepare(
+          `SELECT * FROM test_attempts ORDER BY created_at DESC`
+        ).run()
+
+        return withCors(json({ ok: true, attempts: results }), origin)
       }
 
       return withCors(json({ ok: false, message: 'Not found.' }, 404), origin)

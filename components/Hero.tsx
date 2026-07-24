@@ -1,3 +1,4 @@
+import React from 'react'
 import Image from 'next/image'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
@@ -29,6 +30,26 @@ const BlueDecorator = ({ children }: { children: React.ReactNode }) => (
 const ptComponents: any = {
   block: {
     normal: ({ children, value }: { children: React.ReactNode; value: any }) => {
+      const replaceName = (node: any): any => {
+        if (typeof node === 'string') {
+          return node
+            .replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+            .replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+            .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
+            .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
+        }
+        if (node && node.props && node.props.children) {
+          return {
+            ...node,
+            props: {
+              ...node.props,
+              children: React.Children.map(node.props.children, replaceName)
+            }
+          }
+        }
+        return node
+      }
+
       const text = Array.isArray(value?.children)
         ? value.children.map((c: any) => c?.text || '').join('')
         : ''
@@ -80,7 +101,7 @@ const ptComponents: any = {
         )
       }
 
-      return <p>{children}</p>
+      return <p>{React.Children.map(children, replaceName)}</p>
     },
   },
   marks: {

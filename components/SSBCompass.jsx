@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 
 // SSBCompass™ — Indian Defence Officer Selection Readiness Assessment
-// by Colonel Dr JC John (PhD) · Colonel's MENTORIA
+// by Professor Dr John Chenetra · Colonel's MENTORIA
 // REDESIGNED: Every question has 5 behavioural sentences (no Likert scales)
 // Full terminology: "Officer Like Qualities" never abbreviated to OLQ
 // Module briefing before each stage · Detailed improvement plans in report
@@ -692,7 +692,7 @@ async function generateReport(name, profile, scores) {
   const top5 = sorted.slice(0,5).map(([k])=>OLQ_LIST[k].label);
   const weak4 = sorted.slice(-4).map(([k])=>({key:k, label:OLQ_LIST[k].label, score:olqScores[k]}));
 
-  const prompt = `You are Colonel Dr JC John (PhD), a retired Indian Army Colonel, senior SSB assessor, and founder of Colonel's MENTORIA. You have personally assessed thousands of officer candidates over 30 years.
+  const prompt = `You are Professor Dr John Chenetra, a retired Indian Army Colonel, senior SSB assessor, and founder of Colonel's MENTORIA. You have personally assessed thousands of officer candidates over 30 years.
 
 Write a personalised SSB Officer Readiness Report for ${name}, age ${profile.age||"not specified"}, from ${profile.city||"India"}, aspiring to join the ${profile.service||"Indian Armed Forces"} through ${profile.entry||"NDA/CDS"}.
 
@@ -906,7 +906,7 @@ export default function SSBCompass() {
       <div style={{textAlign:"center",padding:40}}>
         <div style={{fontSize:48,marginBottom:14}}>🎖️</div>
         <h2 style={{fontSize:21,fontWeight:800,color:NAVY,margin:"0 0 10px"}}>Analysing your Officer Like Qualities...</h2>
-        <p style={{color:"#64748B",fontSize:14,lineHeight:1.75}}>Colonel Dr JC John's AI is writing your personalised SSB Readiness Report.<br/>Measuring all 15 Officer Like Qualities across 4 Factors.<br/>Please wait about 25 seconds.</p>
+        <p style={{color:"#64748B",fontSize:14,lineHeight:1.75}}>Professor Dr John Chenetra's AI is writing your personalised SSB Readiness Report.<br/>Measuring all 15 Officer Like Qualities across 4 Factors.<br/>Please wait about 25 seconds.</p>
       </div>
     </div>
   );
@@ -1093,7 +1093,7 @@ export default function SSBCompass() {
           {/* AI REPORT */}
           {report&&(
             <div className="fi pc" style={{background:"#fff",borderRadius:14,padding:22,marginBottom:14,boxShadow:"0 2px 12px rgba(0,0,0,0.06)",border:"1.5px solid #BFDBFE"}}>
-              <p style={{fontSize:11,fontWeight:700,color:NAVY,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>📝 Colonel Dr JC John — Personalised SSB Readiness Assessment</p>
+              <p style={{fontSize:11,fontWeight:700,color:NAVY,textTransform:"uppercase",letterSpacing:1,margin:"0 0 14px"}}>📝 Professor Dr John Chenetra — Personalised SSB Readiness Assessment</p>
               {report.split(/\n\n+/).filter(p=>p.trim()).map((para,i)=>{
                 const cols=["#EFF6FF","#ECFDF5","#FFF7ED","#EFF6FF","#F5F3FF"];
                 const bords=[NAVY,"#065F46","#92400E","#1E3A8A","#581C87"];
@@ -1116,13 +1116,13 @@ export default function SSBCompass() {
             <div style={{background:"#F8FAFC",borderRadius:12,padding:14}}>
               <p style={{fontSize:13,fontWeight:600,color:"#374151",margin:"0 0 9px"}}>📧 Email this report:</p>
               <div style={{display:"flex",gap:8}}>
-                <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Enter email address (parents, mentor, Colonel Dr JC John's team)..." style={{...INP,flex:1}}/>
+                <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Enter email address (parents, mentor, Professor Dr John Chenetra's team)..." style={{...INP,flex:1}}/>
                 <button onClick={()=>{if(email.includes("@")){setEmailOk(true);setTimeout(()=>setEmailOk(false),4000);}}} style={{padding:"11px 16px",borderRadius:9,border:"none",background:"#065F46",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>
                   {emailOk?"✅ Sent!":"Send →"}
                 </button>
               </div>
               {emailOk&&<p style={{color:"#065F46",fontSize:12,margin:"8px 0 0"}}>✅ Sent! Connect your email service in the deployed version to enable actual delivery.</p>}
-              <p style={{color:"#94A3B8",fontSize:11,margin:"8px 0 0"}}>Share with your parents, SSB coaching mentor, or Colonel Dr JC John's team at Colonel's MENTORIA.</p>
+              <p style={{color:"#94A3B8",fontSize:11,margin:"8px 0 0"}}>Share with your parents, SSB coaching mentor, or Professor Dr John Chenetra's team at Colonel's MENTORIA.</p>
             </div>
           </div>
 
@@ -1130,7 +1130,7 @@ export default function SSBCompass() {
           <div className="np" style={{textAlign:"center",paddingBottom:40}}>
             <button onClick={reset} style={{padding:"11px 28px",borderRadius:10,border:"1.5px solid #E2E8F0",background:"#fff",color:"#64748B",fontSize:14,cursor:"pointer"}}>Retake Assessment</button>
             <p style={{color:"#94A3B8",fontSize:11,marginTop:12}}>
-              © Colonel's MENTORIA — SSBCompass™ by Colonel Dr JC John (PhD) · Powered by Claude AI (Anthropic)<br/>
+              © Colonel's MENTORIA — SSBCompass™ by Professor Dr John Chenetra · Powered by Claude AI (Anthropic)<br/>
               This is a preparation and development tool. Official SSB selection is conducted by the Services Selection Boards of the Indian Armed Forces.
             </p>
           </div>

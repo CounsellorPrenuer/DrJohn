@@ -30,11 +30,31 @@ export default function AboutSection({ section }: AboutSectionProps) {
 
   const heading = section.heading
   const mission = section.mission
-  const mentorName = section.mentorName
-  const mentorDescription = section.mentorDescription
+  const rawMentorName = section.mentorName || ''
+  const mentorName = rawMentorName.replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra").replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra").replace(/JC\s*John/gi, "Professor Dr John Chenetra") || "Professor Dr John Chenetra"
+  
+  const rawMentorDescription = section.mentorDescription || ''
+  const mentorDescription = rawMentorDescription
+    .replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
+
   const mentorImage = section.mentorImage || section.profileImage
-  const quoteText = section.quoteText || section.highlightQuote
-  const secondaryDescription = section.secondaryDescription
+  const rawQuoteText = section.quoteText || section.highlightQuote || ''
+  const quoteText = rawQuoteText
+    .replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
+
+  const rawSecondaryDescription = section.secondaryDescription || ''
+  const secondaryDescription = rawSecondaryDescription
+    .replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
+    .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
+
   const showCta = Boolean(section.ctaText && section.ctaLink)
   const credentials = section.credentials
   const sectionBackground = resolveColor(section.backgroundColor, '#f5f5f5')

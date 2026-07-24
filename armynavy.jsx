@@ -370,7 +370,7 @@ async function generateAIReport(name, profile, scores, topCareers, swData, age, 
   const { mbti, mbtiName, topRI, riNames, topIntelligences } = profile;
   const topVals = Object.entries(scores.values||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k.replace(/_/g," ")).join(", ");
 
-  const prompt = `You are Colonel Dr JC John, a warm, encouraging career counsellor writing a personalised report for ${name}, who is ${age || "a young person"} from ${city || "India"} with ${experience || "0"} years of work experience.
+  const prompt = `You are Professor Dr John Chenetra, a warm, encouraging career counsellor writing a personalised report for ${name}, who is ${age || "a young person"} from ${city || "India"} with ${experience || "0"} years of work experience.
 
 Their psychometric results:
 - Personality Type: ${mbti} (${mbtiName})

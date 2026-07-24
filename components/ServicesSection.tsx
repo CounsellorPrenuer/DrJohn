@@ -221,6 +221,22 @@ const getPlanId = (plan?: PackagePlan) => {
 }
 
 export default function ServicesSection({ section, services, packages }: ServicesSectionProps) {
+  const renderBenefitText = (text: string) => {
+    if (text.includes("AARYA")) {
+      const parts = text.split("AARYA");
+      return (
+        <>
+          {parts[0]}
+          <a href="https://arya.mentoria.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'underline', fontWeight: 'bold' }}>
+            AARYA
+          </a>
+          {parts[1]}
+        </>
+      );
+    }
+    return text;
+  };
+
   if (!section) return null
 
   const [selectedPlan, setSelectedPlan] = useState<{
@@ -588,7 +604,7 @@ export default function ServicesSection({ section, services, packages }: Service
                             &#10003;
                           </span>
                           <span className="text-lg leading-relaxed" style={{ color: textColor }}>
-                            {point}
+                            {renderBenefitText(point)}
                           </span>
                         </li>
                       ))}
@@ -634,7 +650,7 @@ export default function ServicesSection({ section, services, packages }: Service
                         {customPack.benefits.map((benefit, idx) => (
                           <li key={`${customPack.id}-${idx}`} className="flex items-start gap-2 text-sm text-slate-700">
                             <span className="mt-1 text-slate-500 text-xs">•</span>
-                            <span className="leading-relaxed">{benefit}</span>
+                            <span className="leading-relaxed">{renderBenefitText(benefit)}</span>
                           </li>
                         ))}
                       </ul>

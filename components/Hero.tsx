@@ -32,11 +32,31 @@ const ptComponents: any = {
     normal: ({ children, value }: { children: React.ReactNode; value: any }) => {
       const replaceName = (node: any): any => {
         if (typeof node === 'string') {
-          return node
+          const replaced = node
             .replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
             .replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
             .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
             .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
+
+          if (replaced.includes("AARYA")) {
+            const parts = replaced.split("AARYA");
+            return (
+              <>
+                {parts[0]}
+                <a
+                  href="https://arya.mentoria.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline font-bold"
+                  style={{ color: '#2563EB' }}
+                >
+                  AARYA
+                </a>
+                {parts[1]}
+              </>
+            );
+          }
+          return replaced;
         }
         if (node && node.props && node.props.children) {
           return {

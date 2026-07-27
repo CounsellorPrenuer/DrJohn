@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import Image from 'next/image'
 import { urlFor } from '@/lib/sanity'
@@ -347,4 +348,5 @@ function createSpanSegment(originalSpan: any, text: string, makeBlue: boolean, s
     marks,
   }
 }
+
 

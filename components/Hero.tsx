@@ -38,25 +38,28 @@ const ptComponents: any = {
             .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
             .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
 
+          let parts: any[] = [replaced]
+
           if (replaced.includes("AARYA")) {
-            const parts = replaced.split("AARYA");
-            return (
-              <>
-                {parts[0]}
-                <a
-                  href="https://arya.mentoria.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline font-bold"
-                  style={{ color: '#2563EB' }}
-                >
-                  AARYA
-                </a>
-                {parts[1]}
-              </>
-            );
+             parts = replaced.split("AARYA").flatMap((part, i, arr) => 
+               i < arr.length - 1 ? [part, <a key={`aarya-${i}`} href="https://arya.mentoria.com/" target="_blank" rel="noopener noreferrer" className="underline font-bold" style={{ color: '#2563EB' }}>AARYA</a>] : [part]
+             )
           }
-          return replaced;
+
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          parts = parts.flatMap((part, i) => {
+             if (typeof part === 'string') {
+                 return part.split(urlRegex).map((subPart, j) => {
+                     if (subPart.match(urlRegex)) {
+                         return <a key={`url-${i}-${j}`} href={subPart} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: '#2563EB' }}>{subPart}</a>
+                     }
+                     return subPart;
+                 })
+             }
+             return [part];
+          })
+
+          return parts.length === 1 ? parts[0] : parts;
         }
         if (node && node.props && node.props.children) {
           return {

@@ -2,6 +2,8 @@ import React from 'react'
 import Image from 'next/image'
 import { urlFor } from '@/lib/sanity'
 import { PortableText } from '@portabletext/react'
+import { motion } from 'framer-motion'
+import { ArrowRight, Sparkles } from 'lucide-react'
 
 interface HeroProps {
   section?: {
@@ -21,10 +23,10 @@ interface HeroProps {
 }
 
 const RedDecorator = ({ children }: { children: React.ReactNode }) => (
-  <span style={{ color: '#DC2626' }}>{children}</span>
+  <span className="text-rose-500 font-bold bg-rose-500/10 px-2 py-0.5 rounded-md inline-block mx-1 shadow-[0_0_15px_rgba(244,63,94,0.3)]">{children}</span>
 )
 const BlueDecorator = ({ children }: { children: React.ReactNode }) => (
-  <span style={{ color: '#2563EB' }}>{children}</span>
+  <span className="text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-md inline-block mx-1 shadow-[0_0_15px_rgba(96,165,250,0.3)]">{children}</span>
 )
 
 const ptComponents: any = {
@@ -32,11 +34,15 @@ const ptComponents: any = {
     normal: ({ children, value }: { children: React.ReactNode; value: any }) => {
       const replaceName = (node: any): any => {
         if (typeof node === 'string') {
-          const replaced = node
+          let replaced = node
             .replace(/Dr\.?\s*Colonel\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
             .replace(/Colonel\s*Dr\s*J\.?C\.?\s*John/gi, "Professor Dr John Chenetra")
             .replace(/Dr\s*Colonel\s*JC\s*John/gi, "Professor Dr John Chenetra")
             .replace(/JC\s*John/gi, "Professor Dr John Chenetra")
+            
+          // Fix typos in Sanity source data
+          replaced = replaced.replace(/cometogether to useour/gi, "come together to use our")
+          replaced = replaced.replace(/& OVERSIMPLIFY\.IN\(in/gi, "& OVERSIMPLIFY.IN (in")
 
           if (replaced.includes("AARYA")) {
             const parts = replaced.split("AARYA");
@@ -47,10 +53,10 @@ const ptComponents: any = {
                   href="https://arya.mentoria.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline font-bold"
-                  style={{ color: '#2563EB' }}
+                  className="font-bold text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1 group border-b border-blue-400/30 hover:border-blue-400"
                 >
                   AARYA
+                  <ArrowRight className="w-3 h-3 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                 </a>
                 {parts[1]}
               </>
@@ -76,17 +82,16 @@ const ptComponents: any = {
 
       if (/Both parents.*Click here\./i.test(text)) {
         return (
-          <p>
-            <strong>Both parents </strong>
+          <p className="my-6 p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl text-gray-300">
+            <strong className="text-white">Both parents </strong>
             must see this video before your child takes the subscription to understand the Methodology. Click here.{' '}
             <a
               href="https://youtu.be/mytJzDawl9M?si=hOYM7bHwtWTF_1o2"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline"
-              style={{ color: '#2563EB' }}
+              className="text-blue-400 hover:text-blue-300 underline underline-offset-4 decoration-blue-400/30 hover:decoration-blue-400 transition-all"
             >
-              https://youtu.be/mytJzDawl9M?si=hOYM7bHwtWTF_1o2
+              Watch Video
             </a>
           </p>
         )
@@ -94,26 +99,26 @@ const ptComponents: any = {
 
       if (/The student.*must study.*understand/i.test(text)) {
         return (
-          <div className="space-y-2">
-            <p>
-              <strong>The student </strong>
+          <div className="space-y-4 my-8 p-6 rounded-2xl bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-white/10 backdrop-blur-md shadow-2xl">
+            <p className="text-gray-300 text-lg">
+              <strong className="text-white">The student </strong>
               must study{' '}
               <a
                 href="/career-compass-ai"
-                className="underline"
-                style={{ color: '#2563EB' }}
+                className="font-bold text-blue-400 hover:text-blue-300 underline underline-offset-4 decoration-blue-400/30 hover:decoration-blue-400 transition-all"
               >
                 Colonel&#39;s MENTORIA
               </a>{' '}
               to understand &#39;Lifelong Learning&#39;
             </p>
-            <p className="mt-2 text-center">
-              <strong>Ai based training need analysis: </strong>
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent my-4" />
+            <p className="text-center text-lg">
+              <strong className="text-gray-300 block mb-2 text-sm uppercase tracking-widest font-semibold">AI based training need analysis </strong>
               <a
                 href="/career-compass-ai"
-                className="underline"
-                style={{ color: '#2563EB' }}
+                className="inline-flex items-center gap-2 font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all text-xl"
               >
+                <Sparkles className="w-5 h-5 text-amber-400" />
                 Colonel&#39;s MENTORIA Career Compass
               </a>
             </p>
@@ -121,7 +126,7 @@ const ptComponents: any = {
         )
       }
 
-      return <p>{React.Children.map(children, replaceName)}</p>
+      return <p className="mb-6 leading-relaxed text-gray-300 text-lg md:text-xl font-light tracking-wide">{React.Children.map(children, replaceName)}</p>
     },
   },
   marks: {
@@ -130,113 +135,128 @@ const ptComponents: any = {
   },
   list: {
     bullet: ({ children }: { children: React.ReactNode }) => (
-      <ul className="mx-auto mt-4 list-disc space-y-3 pl-6 text-left max-w-3xl">
+      <ul className="mx-auto mt-6 mb-8 list-none space-y-4 text-left max-w-3xl text-gray-300 text-lg md:text-xl font-light">
         {children}
       </ul>
     ),
     number: ({ children }: { children: React.ReactNode }) => (
-      <ol className="mx-auto mt-4 list-decimal space-y-3 pl-6 text-left max-w-3xl">
+      <ol className="mx-auto mt-6 mb-8 list-decimal space-y-4 pl-6 text-left max-w-3xl text-gray-300 text-lg md:text-xl font-light marker:text-blue-400">
         {children}
       </ol>
     ),
   },
   listItem: {
-    bullet: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
+    bullet: ({ children }: { children: React.ReactNode }) => (
+      <li className="flex items-start gap-3">
+        <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+        <span>{children}</span>
+      </li>
+    ),
     number: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
   },
 }
 
 export default function Hero({ section }: HeroProps) {
-  // Always render consistent structure to avoid hydration mismatch
-  const bgColor = section?.backgroundColor || '#ffffff'
-  // Force black color as requested, ignoring Sanity field for now
-  const headingColor = '#000000'
-  const textColor = '#000000'
-  // Use fallback title to ensure consistent rendering
   const title = section?.title || 'Welcome'
 
   return (
     <section
       id="home"
-      className="relative w-full px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28"
-      style={{ backgroundColor: bgColor }}
+      className="relative w-full min-h-[90vh] flex items-center justify-center px-4 py-20 sm:px-6 sm:py-24 lg:px-8 overflow-hidden bg-[#0A0A0A]"
     >
-      {section?.heroBackgroundImage?.asset && (
-        <div className="absolute inset-0">
-          <Image
-            src={urlFor(section.heroBackgroundImage).width(1920).height(1080).url()}
-            alt={section.heroBackgroundImage?.alt || 'Hero background'}
-            fill
-            className="object-cover opacity-40"
-            priority
-          />
-        </div>
-      )}
-      <div className="relative z-10 mx-auto max-w-4xl w-full text-center space-y-8">
-        <div
-          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight"
-          style={{ color: headingColor }}
+      {/* Dynamic Background Effects */}
+      <div className="absolute inset-0 w-full h-full">
+        {/* Base dark gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0A0A0A] to-black" />
+        
+        {/* Animated glowing orbs */}
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.5, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-1/2 -left-20 w-72 h-72 bg-rose-600/20 rounded-full blur-[80px]" 
+        />
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+
+        {/* Hero Image Background (if provided) */}
+        {section?.heroBackgroundImage?.asset && (
+          <div className="absolute inset-0 mix-blend-overlay opacity-30">
+            <Image
+              src={urlFor(section.heroBackgroundImage).width(1920).height(1080).url()}
+              alt={section.heroBackgroundImage?.alt || 'Hero background'}
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Gradient mask to fade out image at the bottom */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A0A0A]/50 to-[#0A0A0A]" />
+          </div>
+        )}
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-5xl w-full text-center space-y-12">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="space-y-6"
         >
-          {hasPortableTextContent(section?.richTitle) ? (
-            <PortableText value={applyBlueHighlights(section!.richTitle)} components={ptComponents} />
-          ) : (
-            <h1>{title}</h1>
-          )}
-        </div>
+          <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white drop-shadow-2xl">
+            {hasPortableTextContent(section?.richTitle) ? (
+              <PortableText value={applyBlueHighlights(section!.richTitle)} components={ptComponents} />
+            ) : (
+              <h1 className="bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">{title}</h1>
+            )}
+          </div>
+        </motion.div>
 
         {section?.heroImage?.asset && (
-          <div className="flex justify-center">
-            <Image
-              src={urlFor(section.heroImage).width(520).height(360).url()}
-              alt={section.heroImage?.alt || title || 'Hero image'}
-              width={520}
-              height={360}
-              className="h-auto w-full max-w-lg rounded-2xl object-cover"
-            />
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="flex justify-center"
+          >
+            <div className="relative group p-1 rounded-3xl bg-gradient-to-br from-white/10 to-white/0 border border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.05)] hover:shadow-[0_0_60px_rgba(255,255,255,0.1)] transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-rose-500 rounded-3xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500" />
+              <Image
+                src={urlFor(section.heroImage).width(720).height(480).url()}
+                alt={section.heroImage?.alt || title || 'Hero image'}
+                width={720}
+                height={480}
+                className="h-auto w-full max-w-2xl rounded-[22px] object-cover relative z-10"
+              />
+            </div>
+          </motion.div>
         )}
 
         {hasPortableTextContent(section?.richSubtitle) && (
-          <div
-            className="mx-auto max-w-6xl pt-6 text-base leading-relaxed sm:text-lg md:text-xl"
-            style={{ color: textColor }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mx-auto max-w-4xl"
           >
-            <PortableText value={applyBlueHighlights(section!.richSubtitle)} components={ptComponents} />
-          </div>
+            <div className="p-8 sm:p-10 rounded-3xl bg-white/[0.02] border border-white/5 backdrop-blur-2xl shadow-2xl">
+              <PortableText value={applyBlueHighlights(section!.richSubtitle)} components={ptComponents} />
+            </div>
+          </motion.div>
         )}
       </div>
     </section>
   )
-}
-
-function ensureContrast(color: string | undefined, background: string, fallback: string) {
-  const chosen = color?.trim() || fallback
-  const bg = parseHexColor(background)
-  const fg = parseHexColor(chosen)
-  if (!bg || !fg) return chosen
-
-  const ratio = contrastRatio(bg.luminance, fg.luminance)
-  if (ratio < 3) {
-    return bg.luminance < 0.5 ? '#f9fafb' : '#111827'
-  }
-  return chosen
-}
-
-function parseHexColor(value: string) {
-  const hex = value.trim().replace('#', '')
-  if (hex.length !== 3 && hex.length !== 6) return null
-  const r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.slice(0, 2), 16)
-  const g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.slice(2, 4), 16)
-  const b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.slice(4, 6), 16)
-  if ([r, g, b].some((v) => Number.isNaN(v))) return null
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
-  return { r, g, b, luminance }
-}
-
-function contrastRatio(bgLuminance: number, fgLuminance: number) {
-  const lighter = Math.max(bgLuminance, fgLuminance) + 0.05
-  const darker = Math.min(bgLuminance, fgLuminance) + 0.05
-  return lighter / darker
 }
 
 function hasPortableTextContent(blocks: any[]) {
@@ -327,3 +347,4 @@ function createSpanSegment(originalSpan: any, text: string, makeBlue: boolean, s
     marks,
   }
 }
+

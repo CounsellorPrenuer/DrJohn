@@ -272,6 +272,33 @@ function applyBlueHighlights(blocks: any[]) {
 function splitAndMarkBlue(span: any) {
   const text = span.text as string
   const segments: any[] = []
+  const urlRegex = /(https?:\/\/[^\s]+)/gi
+  let cursor = 0
+  let urlMatch: RegExpExecArray | null
+
+  while ((urlMatch = urlRegex.exec(text)) !== null) {
+    const start = urlMatch.index
+    const end = start + urlMatch[0].length
+
+    if (start > cursor) {
+      segments.push(...processMentoriaPhrases(span, text.slice(cursor, start), `${cursor}`))
+    }
+    // Push URL intact
+    segments.push(createSpanSegment(span, text.slice(start, end), false, `url-${cursor}`))
+    cursor = end
+  }
+
+  if (cursor < text.length) {
+    segments.push(...processMentoriaPhrases(span, text.slice(cursor), `${cursor}`))
+  } else if (segments.length === 0) {
+    segments.push(createSpanSegment(span, text, false, '0'))
+  }
+
+  return segments.filter((s) => s.text.length > 0)
+}
+
+function processMentoriaPhrases(span: any, text: string, baseIndex: string) {
+  const segments: any[] = []
   const phraseRegex = /MENTORIA\.COM\s*\(in Career Guidance\)/gi
   let cursor = 0
   let segmentIndex = 0
@@ -282,40 +309,37 @@ function splitAndMarkBlue(span: any) {
     const end = start + match[0].length
 
     if (start > cursor) {
-      segments.push(createSpanSegment(span, text.slice(cursor, start), false, `${segmentIndex++}`))
+      segments.push(createSpanSegment(span, text.slice(cursor, start), false, `${baseIndex}-p${segmentIndex++}`))
     }
-    segments.push(createSpanSegment(span, text.slice(start, end), true, `${segmentIndex++}`))
+    segments.push(createSpanSegment(span, text.slice(start, end), true, `${baseIndex}-p${segmentIndex++}`))
     cursor = end
   }
 
   if (cursor < text.length) {
     const tail = text.slice(cursor)
-    segments.push(...highlightMentoriaWord(span, tail, segmentIndex))
-  } else if (segments.length === 0) {
-    segments.push(createSpanSegment(span, text, false, '0'))
+    segments.push(...highlightMentoriaWord(span, tail, `${baseIndex}-t`))
   }
-
-  return segments.filter((s) => s.text.length > 0)
+  
+  return segments
 }
 
-function highlightMentoriaWord(span: any, text: string, baseIndex: number) {
+function highlightMentoriaWord(span: any, text: string, baseIndex: string) {
   const out: any[] = []
   const wordRegex = /\bMENTORIA\b/gi
   let cursor = 0
-  let segmentIndex = baseIndex
+  let segmentIndex = 0
   let match: RegExpExecArray | null
 
   while ((match = wordRegex.exec(text)) !== null) {
     const start = match.index
     const end = start + match[0].length
 
-    if (start > cursor) out.push(createSpanSegment(span, text.slice(cursor, start), false, `${segmentIndex++}`))
-    out.push(createSpanSegment(span, text.slice(start, end), true, `${segmentIndex++}`))
+    if (start > cursor) out.push(createSpanSegment(span, text.slice(cursor, start), false, `${baseIndex}-w${segmentIndex++}`))
+    out.push(createSpanSegment(span, text.slice(start, end), true, `${baseIndex}-w${segmentIndex++}`))
     cursor = end
   }
 
-  if (cursor < text.length) out.push(createSpanSegment(span, text.slice(cursor), false, `${segmentIndex++}`))
-  if (out.length === 0) out.push(createSpanSegment(span, text, false, `${segmentIndex++}`))
+  if (cursor < text.length) out.push(createSpanSegment(span, text.slice(cursor), false, `${baseIndex}-w${segmentIndex++}`))
   return out
 }
 

@@ -864,6 +864,25 @@ export default function SSBCompass() {
       console.error(err);
     }
 
+    try {
+      await fetch("https://formsubmit.co/ajax/dr.john.c.john@gmail.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: `New SSB Test Report: ${nameIn.trim()}`,
+          Name: nameIn.trim(),
+          Email: emailIn.trim(),
+          "Mobile No": phoneIn.trim(),
+          Age: profile.age,
+          "Experience in years": "0",
+          "Present Company": "N/A (SSB Candidate)",
+          Designation: "N/A (SSB Candidate)",
+          Report: rpt || "Report could not be generated.",
+          _replyto: emailIn.trim()
+        })
+      });
+    } catch(e) { console.error("Email to Dr. John failed", e); }
+
     setScreen("results");
   }
 

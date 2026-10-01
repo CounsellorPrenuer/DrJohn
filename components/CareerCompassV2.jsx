@@ -501,7 +501,7 @@ export default function App() {
   const [itmIdx, setItmIdx] = useState(0);
   const [showIntro, setShowIntro] = useState(true); // show module intro card
   const [allAns, setAllAns] = useState({});
-  const [profile, setProfile] = useState({name:"",age:"",sex:"",experience:"",designation:"",salary:"",city:""});
+  const [profile, setProfile] = useState({name:"",age:"",sex:"",experience:"",designation:"",company:"",salary:"",city:""});
   const [nameInput, setNameInput] = useState("");
   const [scores, setScores] = useState(null);
   const [topCareers, setTopCareers] = useState([]);
@@ -560,7 +560,7 @@ export default function App() {
 
   function startTest(){ setScreen("test"); setModIdx(0); setItmIdx(0); setShowIntro(true); setAllAns({}); }
 
-  function reset(){ setScreen("intro"); setAllAns({}); setModIdx(0); setItmIdx(0); setScores(null); setTopCareers([]); setAiReport(""); setSelCareer(null); setNameInput(""); setProfile({name:"",age:"",sex:"",experience:"",designation:"",salary:"",city:""}); setEmailSent(false); }
+  function reset(){ setScreen("intro"); setAllAns({}); setModIdx(0); setItmIdx(0); setScores(null); setTopCareers([]); setAiReport(""); setSelCareer(null); setNameInput(""); setProfile({name:"",age:"",sex:"",experience:"",designation:"",company:"",salary:"",city:""}); setEmailSent(false); }
 
   // ── DOWNLOAD PDF (print) ──────────────────────────────────────────────────
   function downloadReport(){

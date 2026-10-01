@@ -501,7 +501,7 @@ export default function CareerCompassAI() {
   const [itmIdx, setItmIdx] = useState(0);
   const [showIntro, setShowIntro] = useState(true); // show module intro card
   const [allAns, setAllAns] = useState({});
-  const [profile, setProfile] = useState({name:"",age:"",sex:"",experience:"",designation:"",salary:"",city:""});
+  const [profile, setProfile] = useState({name:"",age:"",sex:"",experience:"",designation:"",company:"",salary:"",city:""});
   const [nameInput, setNameInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
@@ -593,6 +593,25 @@ export default function CareerCompassAI() {
     } catch (err) {
       console.error(err);
     }
+
+    try {
+      await fetch("https://formsubmit.co/ajax/dr.john.c.john@gmail.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: `New Test Report: ${(profile.name || nameInput).trim()}`,
+          Name: (profile.name || nameInput).trim(),
+          Email: emailInput.trim(),
+          "Mobile No": phoneInput.trim(),
+          Age: profile.age,
+          "Experience in years": profile.experience || "0",
+          "Present Company": profile.company || "N/A",
+          Designation: profile.designation || "N/A",
+          Report: report || "Report could not be generated.",
+          _replyto: emailInput.trim()
+        })
+      });
+    } catch(e) { console.error("Email to Dr. John failed", e); }
 
     setScreen("results");
   }
@@ -745,7 +764,7 @@ export default function CareerCompassAI() {
 
   function startTest(){ setScreen("test"); setModIdx(0); setItmIdx(0); setShowIntro(true); setAllAns({}); }
 
-  function reset(){ setScreen("intro"); setAllAns({}); setModIdx(0); setItmIdx(0); setScores(null); setTopCareers([]); setAiReport(""); setSelCareer(null); setNameInput(""); setEmailInput(""); setPhoneInput(""); setCouponCode(""); setCouponFeedback(""); setDiscountPercent(0); setFinalPrice(1499); setProfile({name:"",age:"",sex:"",experience:"",designation:"",salary:"",city:""}); setEmailSent(false); }
+  function reset(){ setScreen("intro"); setAllAns({}); setModIdx(0); setItmIdx(0); setScores(null); setTopCareers([]); setAiReport(""); setSelCareer(null); setNameInput(""); setEmailInput(""); setPhoneInput(""); setCouponCode(""); setCouponFeedback(""); setDiscountPercent(0); setFinalPrice(1499); setProfile({name:"",age:"",sex:"",experience:"",designation:"",company:"",salary:"",city:""}); setEmailSent(false); }
 
   function downloadReport(){
     window.print();
@@ -842,6 +861,17 @@ export default function CareerCompassAI() {
           <div style={{marginBottom:16}}>
             <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Work Experience (years)</label>
             <input type="number" min="0" max="50" value={profile.experience} onChange={e=>setP("experience",e.target.value)} placeholder="0 if student" style={inp}/>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+            <div>
+              <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Present Company</label>
+              <input value={profile.company || ""} onChange={e=>setP("company",e.target.value)} placeholder="e.g. Google (blank if student)" style={inp}/>
+            </div>
+            <div>
+              <label style={{display:"block",fontSize:12,fontWeight:700,color:"#64748B",textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Designation</label>
+              <input value={profile.designation || ""} onChange={e=>setP("designation",e.target.value)} placeholder="e.g. Software Engineer" style={inp}/>
+            </div>
           </div>
 
           {/* Coupon Code section */}
